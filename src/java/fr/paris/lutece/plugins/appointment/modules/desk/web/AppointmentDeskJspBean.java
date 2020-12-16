@@ -64,7 +64,9 @@ import fr.paris.lutece.util.date.DateUtil;
 import net.sf.json.JSONObject;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -98,13 +100,15 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String PARAMETER_NUMB_DESK = "numb_desk";
     private static final String PARAMETER_DATE_DAY = "day";
     private static final String PARAMETER_DATA = "data";
-
     private static final String PARAMETER_ENDING_DATE = "ending_date";
     private static final String PARAMETER_STARTING_DATE = "starting_date";
     private static final String PARAMETER_STARTING_TIME = "starting_time";
     private static final String PARAMETER_ENDING_TIME = "ending_time";
     private static final String PARAMETER_INCREMENTING_VALUE = "incrementing_value";
     private static final String PARAMETER_TYPE = "type";
+    private static final String PARAMETER_MIN_TIME = "min_time";
+    private static final String PARAMETER_MAX_TIME = "max_time";
+    
     // Properties for page titles
     private static final String PROPERTY_PAGE_TITLE_MANAGE_APPOINTMENTDESKS = "appointment-desk.manage_appointmentdesks.pageTitle";
 
@@ -159,7 +163,13 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         LocalDate dateDay = null;
 
         Form form = FormService.findFormLightByPrimaryKey( nIdForm );
-       HashMap<LocalDate, WeekDefinition> mapWeekDefinition = WeekDefinitionService.findAllWeekDefinition( nIdForm );
+        
+        HashMap<LocalDate, WeekDefinition> mapWeekDefinition = WeekDefinitionService.findAllWeekDefinition( nIdForm );
+        List<WeekDefinition> listWeekDefinition = new ArrayList<>( mapWeekDefinition.values( ) );
+		// Get the min time of all the week definitions
+        LocalTime minStartingTime = WeekDefinitionService.getMinStartingTimeOfAListOfWeekDefinition( listWeekDefinition );
+        // Get the max time of all the week definitions
+        LocalTime maxEndingTime = WeekDefinitionService.getMaxEndingTimeOfAListOfWeekDefinition( listWeekDefinition );
 
        /* List<WeekDefinition> listWeekDefinition = WeekDefinitionService.findListWeekDefinition( nIdForm );
         Map<LocalDate, ReservationRule> mapReservationRule = ReservationRuleService.findAllReservationRule( nIdForm, listWeekDefinition );
@@ -207,6 +217,8 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         model.put( MARK_FORM, form );
         model.put( MARK_MACRO_LOCALE, getLocale( ) );
         model.put( MARK_LIST_TYPE, getListTypes( ));
+		model.put( PARAMETER_MIN_TIME, minStartingTime );
+		model.put( PARAMETER_MAX_TIME, maxEndingTime);
 
 
         return getPage( PROPERTY_PAGE_TITLE_MANAGE_APPOINTMENTDESKS, TEMPLATE_MANAGE_APPOINTMENTDESKS, model );
