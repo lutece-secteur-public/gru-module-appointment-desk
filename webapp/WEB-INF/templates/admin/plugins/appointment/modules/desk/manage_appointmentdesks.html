@@ -1,15 +1,5 @@
 <#include "manageappointmentdesk_tabs.html" />
 <#-- TODO Add id_form value to model -->
-
-<script src="js/plugins/appointment/selectable.js"></script>
-<script src="js/plugins/appointment/selectable.table.min.js"></script>
-
-<script src="js/plugins/appointment/moment.min.js"></script>
-<script src="js/plugins/appointment/bootstrap-datetimepicker.min.js"></script>
-
-<script src="js/bootstrap-datepicker.js"></script>
-<script src="js/locales/bootstrap-datepicker.<@getRegional language=language />.js" charset="utf-8"></script>
-
 <link rel="stylesheet" href="js/plugins/appointment/fullcalendar.min.css" >
 <link rel="stylesheet" href="css/admin/plugins/appointment/fullcalendar.custom.css" >
 <link rel="stylesheet" href="css/admin/plugins/appointment/appointment_desk.css"/>
@@ -76,7 +66,7 @@
 					<@table id='selectable' class="clearfix" >
 					<tr>
 						<th>
-							<@button type='button' color='link' style='btn-link' class='open-desk' params=' data-toggle="modal"' buttonTargetId='#deskModal' title='#i18n{appointmentdesk.manage_appointmentdesks.label.addDesk}' hideTitle=['all'] buttonNested=true >
+							<@button type='button' color='link' style='btn-link' class='open-desk' params=' data-toggle="modal"' buttonTargetId='#deskModal' title='#i18n{appointmentdesk.manage_appointmentdesks.label.addDesk}' hideTitle=[''] buttonNested=true >
 								<@iconStack class='fa-1x'>
 									<@icon style='desktop' class='fa-stack-2x' />
 									<@icon style='plus' class='fa-stack-1x' />
@@ -87,14 +77,14 @@
 						<#list 1..x as seq >
 							<th>#i18n{module.appointment.desk.label.desk} #i18n{module.appointment.desk.label.deskNo}${seq}</th>
 						</#list>
-						<th class="bg-danger">#i18n{module.appointment.desk.label.surbooking}</th>
+						<th class="header-surbook bg-danger">#i18n{module.appointment.desk.label.surbooking}</th>
 					</tr>
 					<@tableHeadBodySeparator />
 					<tr>
 						<td>
-							<@button id='toggle-add-comment' style='none' class='btn btn-link' title='#i18n{module.appointment.desk.label.addComment}' hideTitle=['all'] params=' data-toggle="modal" data-target="#commentModal" ' buttonNested=true>
+							<@button id='toggle-add-comment' style='none' class='btn btn-link' title='#i18n{module.appointment.desk.label.addComment}' hideTitle=[''] params=' data-toggle="modal" data-target="#commentModal" ' buttonNested=true>
 								<@iconStack class='fa-sm'>
-									<@icon style='comment-o' class='fa-stack-2x' />
+									<@icon prefix='far fa-' style='comment' class='fa-stack-2x' />
 									<@icon style='plus' class='fa-stack-1x' />
 								</@iconStack>
 							</@button>								
@@ -154,6 +144,12 @@
     </@columns>
 </@row>
 
+<script src="js/plugins/appointment/moment.min.js"></script>
+<script src="js/plugins/appointment/bootstrap-datetimepicker.min.js"></script>
+
+<script src="js/bootstrap-datepicker.js"></script>
+<script src="js/locales/bootstrap-datepicker.<@getRegional language=language />.js" charset="utf-8"></script>
+
 <@modal id='qModal'>
 	<@modalBody>
 		<p id="loader" class="text-center">
@@ -164,12 +160,16 @@
 	</@modalBody>
 </@modal>
 
-<@modal id='slottoggle'>
+<@modal id='slottoggle' size='sm'>
 	<@modalBody>
+	<div style="margin-left:25%">
 		<@radioButton id='doOpenSlot' name='doManageSlot' value='1' labelKey='#i18n{module.appointment.desk.label.open}' /> 
 		<@radioButton id='doCloseSlot' name='doManageSlot'  value='0' labelKey='#i18n{module.appointment.desk.label.close}' /> 
+	</div>
+	<div style="text-align: center;">
 		<@button id='saveSlotState' color='primary' title='#i18n{module.appointment.desk.label.save}' />
 		<@button id='cancelSlotState' color='secondary' title='#i18n{module.appointment.desk.label.cancel}' params=' data-dismiss="modal" aria-label="#i18n{module.appointment.desk.label.cancel}"' />
+	</div>
 	</@modalBody>
 </@modal>
 
@@ -245,92 +245,16 @@
 	</@modalFooter>
 </@modal>
 
+<script src="js/admin/plugins/appointment/selectable.min.js"></script>
+<script src="js/admin/plugins/appointment/selectable.table.min.js"></script>
 
-<div id="demo"></div>
-
+<script src="js/admin/plugins/appointment/appointment_desk.js"></script>
 <script>
-if( $('.selectable').length > 0 ){
-	const table = document.querySelector("table");
-	const selectable = new Selectable({
-		appendTo: table,
-		filter: table.querySelectorAll(".selectable"),
-		toggle: true,
-		saveState: 10,
-		lasso: {
-			border: "4px dotted rgba( 0, 248, 41, 1)",
-			borderRadius: "0",
-			backgroundColor: "rgba(0, 248, 41, 0.5)",
-		}       
-	});
-
-	selectable.table();
-
-	selectable.on( "end", function(e, selected, unselected) {
-		var slotData='', idx=1;
-		var a=selectable.getSelectedNodes();
-		var slotSize = a.length;
-		if ( slotSize > 0 ){
-			b=selectable.getSelectedNodes();
-			var slotSize = b.length;
-			b.forEach( function( el ){
-				slotData = slotData + el.dataset.slot;
-				if( idx < slotSize ) slotData = slotData + ','
-				idx++; 
-			});
-			slotData = '[' +  slotData.replace(/\'/ig,'"') + ']';
-			// Show Modal
-			$('#slottoggle').modal('toggle');
-			$('#slottoggle').on('shown.bs.modal', function (event) {
-				var modal = $(this), btnModal = modal.find('#saveSlotState'), action='', jspUrl = 'jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=', filteredSlotData=null; 
-				btnModal.click( function( e ){
-					var isOpen = modal.find('.modal-body input:checked').val();
-					var JData = JSON.parse( slotData );
-					/* Ajax 		*/	
-					if( isOpen==0 ){
-						action = 'closeAppointmentDesk';
-						filteredSlotData = JData.filter( function (slot) {
-							return slot.isOpen === 'true';
-						});
-					} else {
-						action = 'openAppointmentDesk';
-						filteredSlotData = JData.filter( function (slot) {
-							return slot.isOpen === 'false';
-						});
-					}
-					var newData =  JSON.stringify( filteredSlotData );
-					if( filteredSlotData.length > 0 ){
-						$.ajax({
-							url: jspUrl + action,
-							dataType: 'json',
-							type: 'POST',
-							cache: false,
-							data:{'data': newData},
-							success: function( data, textStatus, jQxhr ){
-								$('#manage_appointmentdesk').submit();
-							},
-							error: function( jqXhr, textStatus, errorThrown ){
-								$('#manage_appointmentdesk').submit();
-							},
-							xhrFields: {
-								withCredentials: true
-							},
-							crossDomain: true
-						});
-					} else {
-						$('#slottoggle').modal('hide');
-					}
-				});
-			});
-			$('#slottoggle').on('hidden.bs.modal', function (event) {
-				selectable.clear()
-			});
-		}
-	});
-}
-	
 $(function () {
+	/* Add selectable function to table cell */
+	setSelection();
+
 	/* Add Form title */
-	// FIXME : Add form.title to model
 	$('.content-header h1').html("<a href=\"jsp/admin/plugins/appointment/ManageAppointmentForms.jsp\" title=\"#i18n{appointment.adminFeature.ManageAppointmentForm.name}\">#i18n{appointment.adminFeature.ManageAppointmentForm.name} <small>${appointmentForm.title!}</small></a>");
 	$('.bt-slot > .fa').toggle();
 	
@@ -446,132 +370,36 @@ $(function () {
         $( "#modify-comment input[name='endingValidityTime']" ).val( formValues.comment_end_time );
 		$( "#modify-comment" ).modal('show');
 	});
+	
 });  
 
-const appointments = [
-	<#list list_appointment?sort_by('appointmentTakenSqlDate')?reverse?sort_by('nbPlaces')?reverse as app>
-	<#compress>
-	{
-  	"id":"${app.idAppointment}",
-	"lastName" : "${app.user.lastName}",
-	"firstName" : "${app.user.firstName}",
-	"places": ${app.nbPlaces},
-	"slots":[
-	<#list app.slot?sort_by('startingDateTime') as slot>
-		{
-		"id" : "${slot.idSlot}", 
-		"start" : "${slot.startingDateTime!?datetime.iso?string["ddMM-HHmm"]}", 
-		},
-	</#list>
-	],
-	</#compress>
-	},
-</#list>
-];
+/* Get appointment list to set in day view */
+const appointments = [<#list list_appointment?sort_by('appointmentTakenSqlDate')?reverse?sort_by('nbPlaces')?reverse as app>
+<#compress>
+{"id":"${app.idAppointment}","lastName" : "${app.user.lastName}","firstName" : "${app.user.firstName}","places": ${app.nbPlaces},
+	"slots":[<#list app.slot?sort_by('startingDateTime') as slot>{"id" : "${slot.idSlot}", "start" : "${slot.startingDateTime!?datetime.iso?string["ddMM-HHmm"]}", },</#list>],
+},
+</#compress>
+</#list>];
 
 /* Begin set RDV 			*/
 const nDesks=${numb_desk+1};
-var i, j, x = "";
-
-/* function checkMultiRdv : Check if an appointement has a closed slot	*/
-function checkMultiRdv( app ){
-	var isClosed=false;
-	for ( k in app.slots) {
-		var st = $( '.slot-' + app.slots[k].id + '.start-' + app.slots[k].start ).not('.is-multi').first();
-		$( st ).addClass('is-multi multi-' + app.id );
-		if( st.hasClass('slot-close') ){
-			isClosed = true;
-		}
-	}
-	return isClosed;
-}
-
-function setMultiSlot( el, app, info, surbook ){
-	/* Get position info */
-	var elPos = el.offset(), elTop=Math.floor( elPos.top + 5 ), elLeft=Math.ceil( elPos.left + 15 ), elHeight = 33 * app.places, elWidth=Math.ceil( el.width() - 33),  cl='';
-	if( surbook ){ 
-		var surbTop=$('.surbook.top-'+ elTop ), 
-		surbTopL = surbTop.length;
-		// surbPos=surbTop[surbTopL].offset();
-		if( surbTopL > 0 ){
-			elLeft = elLeft + ( elWidth / app.places );
-		}
-		cl=' surbook top-' + elTop, elWidth=elWidth / app.places; 
-	}
-	/* Set HTML for multi-slot elements */
-	var newEl = '<div class="multi-slot multi-slot-' + app.id + cl + '" style="top:' + elTop + 'px; left:' + elLeft + 'px; height:' + elHeight + 'px; width:' + elWidth + 'px"></div>';
-	/* Add to DOM */
-	$('body').append( newEl );
-	multi = '.multi-slot-' + app.id;
-	/* Set info in multi-slot */
-	$(multi).html( info );
-}
-
-/* function setRDV : Draw appointement in the day grid */
-function setRDV( app, surbook ){
-	for ( j in appointments[i].slots) {
-		for ( x = 1; x <= nDesks; x++ ) {
-			/* If a slot is closed then shift elements to surbook */
-			if ( app.places > 1  && surbook ){ 
-				x=nDesks;
-			};
-			/* Set table item selector  */
-			var st = $( '.desk-' + x + '.start-' + app.slots[j].start ), strPlace='';
-			if ( app.places > 1 ){ 
-				strPlace='( Nb de places ' + app.places + ' )';
-			};
-			/* Iterate on desk */
-			var info = '<span>' + app.lastName + ' ' + app.firstName + ' ' + strPlace + '</span>'
-			if ( x < nDesks ){
-				/* If slot is not set or closed */
-				if ( ( st.html().trim().length === 0  ) && ( !st.hasClass( 'slot-close' ) ) ){
-					/* Set info in slot */
-					$( st ).html( info );
-					/* Get first multi element to create div placement over */
-					if( j==0 && app.places > 1 ){ 
-						setMultiSlot( st, app, info, false );
-					};
-					/* If set return to other appointment */
-					break;
-				}
-			} else {
-				/* Set info in surbook slot */
-				if( app.places > 1 ){ 
-					if( $('.multi-slot-' + app.id + '.surbook').length == 0 ){
-						setMultiSlot( st, app, info, true );
-					}
-				} else {
-					$( st ).append( info );
-				};
-			}
-		}
-	}
-}
 
 /* Add RDV in day view */
-for ( i in appointments ) {
-	var hasClosed = false;
-	/* If an appointement has multi slot */
-	if( appointments[i].places > 1 ){
-		/* Check if a multi slot appointement has a closed slot*/
-		hasClosed=checkMultiRdv( appointments[i] )
-	}
-	/* Draw RDV in day view */
-	setRDV( appointments[i], hasClosed );
-}
+setDayView( appointments );
 
+/* Comments */
 function isOver( element, e ) {
 	let elementCalculated = element;
     var left = elementCalculated.offset().left,
         top = elementCalculated.offset().top,
         right = left + element.width(),
         bottom = top + element.height();
-    console.log("souris = " + e.pageX + ", gauche = " + left +", souris hz = " + e.pageX +", droite = " + right + ", souris vertical = " + e.pageY + ", haut= " + top + ", souris vertical = " + e.pageY + ", bas = " + bottom);
-    if ( e.pageX > left && e.pageX < right && e.pageY > top && e.pageY < bottom ){
-    	return true;
-    }else{
-    	return false;
-    }
+	if ( e.pageX > left && e.pageX < right && e.pageY > top && e.pageY < bottom ){
+		return true;
+	} else {
+		return false;
+	}
 }
 </script>
 <#include "/admin/util/editor/editor.html" />

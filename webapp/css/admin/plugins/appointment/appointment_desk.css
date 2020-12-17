@@ -47,13 +47,9 @@
 	position: relative;
 	border: 1px solid #aaa;
 	margin: 0;
+	height: 30px ;
 }
  
-#selectable	td {
-	height: 30px ;
-	position: relative;
-}
-
 #selectable th  {    
 	height: 40px ;
 	font-weight: normal;
@@ -95,26 +91,30 @@
 	left: 15px;
 }
 
-#selectable .is-surbook > span{
-	background-color: #6d015b81;
-}
+#selectable .is-surbook{
+	display: grid;
+	grid-template-columns: repeat( auto-fill, minmax(100px,1fr) );
+	font-size: 1rem;
+} 
 
-#selectable .place.is-multi > span{
-	visibility: hidden !important;
+#selectable .is-surbook > span {
+	background-color: #6d015b81;
 }
 
 .multi-slot{
 	font-family: Verdana,Arial,sans-serif;
 	font-size: 1em;
-	background-color:#6d015bce;
-	color: #ffffff;
+	background-color:#6d015b;
+	color: #fff;
 	z-index: 1;
 	position:absolute; 
 	border-radius: 5px;
 	padding: 15px;
 }
+
 .multi-slot.surbook{
 	background-color: #6d015b81;
+	font-size: 1rem;
 }
 
 #selectable .place.slot-open{
