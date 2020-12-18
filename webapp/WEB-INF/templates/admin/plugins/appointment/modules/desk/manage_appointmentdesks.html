@@ -163,8 +163,8 @@
 <@modal id='slottoggle' size='sm'>
 	<@modalBody>
 	<div style="margin-left:25%">
-		<@radioButton id='doOpenSlot' name='doManageSlot' value='1' labelKey='#i18n{module.appointment.desk.label.open}' /> 
-		<@radioButton id='doCloseSlot' name='doManageSlot'  value='0' labelKey='#i18n{module.appointment.desk.label.close}' /> 
+		<@radioButton id='doOpenSlot' name='doManageSlot' value='1' labelFor='doOpenSlot' labelKey='#i18n{module.appointment.desk.label.open}' /> 
+		<@radioButton id='doCloseSlot' name='doManageSlot'  value='0' labelFor='doCloseSlot' labelKey='#i18n{module.appointment.desk.label.close}' /> 
 	</div>
 	<div style="text-align: center;">
 		<@button id='saveSlotState' color='primary' title='#i18n{module.appointment.desk.label.save}' />
@@ -311,21 +311,21 @@ $(function () {
 		<#list list_comments as comment>
 			<#assign comment_title>${comment.comment?replace('\n', '')?replace('\r', '')?replace('\rn', '')?replace('\'', '&apos;')?replace('\"', '\\"')}</#assign>
 			<#if !comment.startingValidityTime?? && !comment.endingValidityTime??>
-			$('#comment_${comment.id} p').prepend( '[ ${comment.creatorUserName!} | ${comment.creationDate?date.xs!} ] ').append( '<div class="btn-comments"><a href="" class="toggle-modify-comment" data-json=\'{\"id_comment\": \"${comment.id}\", \"comment_text\": \"${comment_title}\", \"comment_start\":\"${comment.startingValidityDate!}\", \"comment_start_time\":\"${comment.startingValidityTime!}", \"comment_end\":\"${comment.endingValidityDate!}", \"comment_end_time\":\"${comment.endingValidityTime!}" }\' ><i class="fa fa-pencil fa-fw"></i></a><a href="jsp/admin/plugins/appointment/Comments.jsp?action=confirmRemoveComment&id_comment=${comment.id}" class="closeon text-danger"><i class="fa fa-remove fa-fw"></i></a></div>');
-			var json = {
-				"container": "body",
-				"placement" : "bottom",
-				"html" : true,
-				"trigger" : "hover"
-			};
+				$('#comment_${comment.id} p').prepend( '[ ${comment.creatorUserName!} | ${comment.creationDate?date.xs!} ] ').append( '<div class="btn-comments"><a href="" class="toggle-modify-comment" data-json=\'{\"id_comment\": \"${comment.id}\", \"comment_text\": \"${comment_title}\", \"comment_start\":\"${comment.startingValidityDate!}\", \"comment_start_time\":\"${comment.startingValidityTime!}", \"comment_end\":\"${comment.endingValidityDate!}", \"comment_end_time\":\"${comment.endingValidityTime!}" }\' ><i class="fa fa-edit fa-fw"></i></a><a href="jsp/admin/plugins/appointment/Comments.jsp?action=confirmRemoveComment&id_comment=${comment.id}" class="closeon"><i class="fa fa-trash fa-fw text-danger"></i></a></div>');
+				var json = {
+					"container": "body",
+					"placement" : "bottom",
+					"html" : true,
+					"trigger" : "hover"
+				};
 			<#else>
-	        $('#comment_${comment.id}').append( '<div class="btn-comments"><span data-json=\'{\"id_comment\": \"${comment.id}\", \"comment_text\": \"${comment_title}\", \"comment_start\":\"${comment.startingValidityDate!}\", \"comment_start_time\":\"${comment.startingValidityTime!}", \"comment_end\":\"${comment.endingValidityDate!}", \"comment_end_time\":\"${comment.endingValidityTime!}", \"comment_creator\":\"${comment.creatorUserName!}", \"comment_creation_date\":\"${comment.creationDate!}" }\' ><i class="fa fa-pencil fa-fw"></i></span></div>');
-	        var json = {
-	                "container": "body",
-	                "placement" : "right",
-	                "html" : true,
-	                "trigger" : "click"
-	            };
+				$('#comment_${comment.id}').append( '<div class="btn-comments"><span data-json=\'{\"id_comment\": \"${comment.id}\", \"comment_text\": \"${comment_title}\", \"comment_start\":\"${comment.startingValidityDate!}\", \"comment_start_time\":\"${comment.startingValidityTime!}", \"comment_end\":\"${comment.endingValidityDate!}", \"comment_end_time\":\"${comment.endingValidityTime!}", \"comment_creator\":\"${comment.creatorUserName!}", \"comment_creation_date\":\"${comment.creationDate!}" }\' ><i class="fa fa-edit fa-fw"></i></span></div>');
+				var json = {
+					"container": "body",
+					"placement" : "right",
+					"html" : true,
+					"trigger" : "click"
+				};
 	        </#if>
 			if ( '${comment.endingValidityDate}' == null || '${comment.endingValidityDate}' == undefined ){
 				labelEventDate='Le ' + '${comment.startingValidityDate?date.xs}';
@@ -333,13 +333,12 @@ $(function () {
 				moment.locale("${locale}");
 				labelEventDate = 'Du ' + '${comment.startingValidityDate?date.xs} ${comment.startingValidityTime!}'+ ' au '+ '${comment.endingValidityDate?date.xs} ${comment.endingValidityTime!}';
 			}
-			
 			<#if !comment.startingValidityTime?? && !comment.endingValidityTime??>
-			json.content = '<p>' + labelEventDate +'</p><hr>${comment_title}<hr><p><strong>Par ${comment.creatorUserName!}</strong> le <time>${comment.creationDate!}</time></p>';
-			$('#comment_${comment.id} p').popover( json );
+				json.content = '<p>' + labelEventDate +'</p><p>Créé par <em>Par ${comment.creatorUserName!}</em> le <time>${comment.creationDate!}</time><hr>${comment_title}</p>';
+				$('#comment_${comment.id} p').popover( json );
 			<#else>
-			$("#comment_${comment.id}").click( function ( event ) {
-				json.content = '<p>' + labelEventDate +'</p><hr>${comment_title}<hr><p><strong>Par ${comment.creatorUserName!}</strong> le <time>${comment.creationDate!}</time></p><a class="toggle-modify-comment" data-json=\'{\"id_comment\": \"${comment.id}\", \"comment_text\": \"${comment_title}\", \"comment_start\":\"${comment.startingValidityDate!}\", \"comment_start_time\":\"${comment.startingValidityTime!}", \"comment_end\":\"${comment.endingValidityDate!}", \"comment_end_time\":\"${comment.endingValidityTime!}", \"comment_creator\":\"${comment.creatorUserName!}", \"comment_creation_date\":\"${comment.creationDate!}" }\' ><i class="fa fa-pencil fa-fw"></i></a><a href="jsp/admin/plugins/appointment/Comments.jsp?action=confirmRemoveComment&id_comment=${comment.id}" class="closeon text-danger"><i class="fa fa-remove fa-fw"></i></a>';
+				$("#comment_${comment.id}").click( function ( event ) {
+				json.content = '<p>' + labelEventDate +'</p><hr>${comment_title}<hr><p><strong>Par ${comment.creatorUserName!}</strong> le <time>${comment.creationDate!}</time></p><a class="toggle-modify-comment" data-json=\'{\"id_comment\": \"${comment.id}\", \"comment_text\": \"${comment_title}\", \"comment_start\":\"${comment.startingValidityDate!}\", \"comment_start_time\":\"${comment.startingValidityTime!}", \"comment_end\":\"${comment.endingValidityDate!}", \"comment_end_time\":\"${comment.endingValidityTime!}", \"comment_creator\":\"${comment.creatorUserName!}", \"comment_creation_date\":\"${comment.creationDate!}" }\' ><i class="fa fa-edit fa-fw"></i></a><a href="jsp/admin/plugins/appointment/Comments.jsp?action=confirmRemoveComment&id_comment=${comment.id}" class="closeon"><i class="fa fa-trash fa-fw text-danger"></i></a>';
 			   $("div[id*=comment_]").not($("#comment_${comment.id}")).each(function(index, element){
 				   if( isOver( $(this), event ) ) {
 					    json.content += "<p>Du " + new Date(jQuery.parseJSON( $(this).children().children().attr("data-json") ).comment_start).toLocaleDateString("${language}") + " " + jQuery.parseJSON( $(this).children().children().attr("data-json") ).comment_start_time + " au " + new Date(jQuery.parseJSON( $(this).children().children().attr("data-json") ).comment_end).toLocaleDateString("${language}") + " " + jQuery.parseJSON( $(this).children().children().attr("data-json") ).comment_end_time + "</p>";
