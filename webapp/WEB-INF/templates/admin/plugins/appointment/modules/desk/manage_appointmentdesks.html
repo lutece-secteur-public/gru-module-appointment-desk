@@ -1,10 +1,10 @@
 <#include "manageappointmentdesk_tabs.html" />
 <#-- TODO Add id_form value to model -->
+<link rel="stylesheet" href="css/admin/plugins/appointment/appointment.css">
 <link rel="stylesheet" href="js/plugins/appointment/fullcalendar.min.css" >
 <link rel="stylesheet" href="css/admin/plugins/appointment/fullcalendar.custom.css" >
-<link rel="stylesheet" href="css/admin/plugins/appointment/appointment_desk.css"/>
-<link rel='stylesheet' href='css/plugins/appointment/bootstrap-datetimepicker.css' />
-
+<link rel="stylesheet" href="css/admin/plugins/appointment/appointment_desk.css">
+<link rel='stylesheet' href="css/plugins/appointment/bootstrap-datetimepicker.css">
 <@row>
 	<@columns>
 	<@messages infos=infos errors=errors />
@@ -32,12 +32,12 @@
 					</div>
 					<div class="fc-right">
 						<@tform type='inline' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' class='hidden-xs'>
-						<#assign nDay = dDay?long + (1 * 24 * 60 * 60 * 1000)>
-						<@input type='hidden' name='id_form' value='${idForm!1}' />
-						<@input type='hidden' name='day' value='${nDay?number_to_date}' />
-						<button type="submit" class="btn btn-primary btn-sm">
-							#i18n{module.appointment.desk.label.nextDay}
-						</button>
+							<#assign nDay = dDay?long + (1 * 24 * 60 * 60 * 1000)>
+							<@input type='hidden' name='id_form' value='${idForm!1}' />
+							<@input type='hidden' name='day' value='${nDay?number_to_date}' />
+							<button type="submit" class="btn btn-primary btn-sm">
+								#i18n{module.appointment.desk.label.nextDay}
+							</button>
 						</@tform>
 					</div>
 					<div class="fc-center">
@@ -129,7 +129,7 @@
 							</td>	
 							<#setting datetime_format="iso">
 							<#list 1..x as seq >
-								<td class="place desk-${seq} slot-${slot.idSlot!} start-${slot.startingDateTime?datetime.iso?string["ddMM-HHmm"]} selectable <#if slot.isOpen && ( seq - slot.maxCapacity lte 0) >slot-open<#else>slot-close</#if>" data-slot="{'idSlot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':'${slot.idForm!1}'}" ></td>	
+								<td class="place desk-${seq} slot-${slot.idSlot!} start-${slot.startingDateTime?datetime.iso?string["ddMM-HHmm"]} selectable <#if slot.isOpen && ( seq - slot.maxCapacity lte 0) >slot-open<#else>slot-close</#if>" data-marker=".desk-${seq}.slot-${slot.idSlot!}.start-${slot.startingDateTime?datetime.iso?string["ddMM-HHmm"]}" data-slot="{'idSlot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':'${slot.idForm!1}'}" ></td>	
 							</#list>
 							<td class="desk-${x+1} start-${slot.startingDateTime?datetime.iso?string["ddMM-HHmm"]} bg-danger is-surbook" data-slot="" >
 						</tr>
@@ -247,7 +247,6 @@
 
 <script src="js/admin/plugins/appointment/selectable.min.js"></script>
 <script src="js/admin/plugins/appointment/selectable.table.min.js"></script>
-
 <script src="js/admin/plugins/appointment/appointment_desk.js"></script>
 <script>
 $(function () {
@@ -255,7 +254,7 @@ $(function () {
 	setSelection();
 
 	/* Add Form title */
-	$('.content-header h1').html("<a href=\"jsp/admin/plugins/appointment/ManageAppointmentForms.jsp\" title=\"#i18n{appointment.adminFeature.ManageAppointmentForm.name}\">#i18n{appointment.adminFeature.ManageAppointmentForm.name} <small>${appointmentForm.title!}</small></a>");
+	$('.content-header h1').html("<a href=\"jsp/admin/plugins/appointment/ManageAppointmentForms.jsp\" title=\"#i18n{appointment.adminFeature.ManageAppointmentForm.name}\">#i18n{appointment.adminFeature.ManageAppointmentForm.name}</a> <small>${appointmentForm.title!}</small>");
 	$('.bt-slot > .fa').toggle();
 	
 	$('#day').datepicker({
@@ -311,21 +310,21 @@ $(function () {
 		<#list list_comments as comment>
 			<#assign comment_title>${comment.comment?replace('\n', '')?replace('\r', '')?replace('\rn', '')?replace('\'', '&apos;')?replace('\"', '\\"')}</#assign>
 			<#if !comment.startingValidityTime?? && !comment.endingValidityTime??>
-				$('#comment_${comment.id} p').prepend( '[ ${comment.creatorUserName!} | ${comment.creationDate?date.xs!} ] ').append( '<div class="btn-comments"><a href="" class="toggle-modify-comment" data-json=\'{\"id_comment\": \"${comment.id}\", \"comment_text\": \"${comment_title}\", \"comment_start\":\"${comment.startingValidityDate!}\", \"comment_start_time\":\"${comment.startingValidityTime!}", \"comment_end\":\"${comment.endingValidityDate!}", \"comment_end_time\":\"${comment.endingValidityTime!}" }\' ><i class="fa fa-edit fa-fw"></i></a><a href="jsp/admin/plugins/appointment/Comments.jsp?action=confirmRemoveComment&id_comment=${comment.id}" class="closeon"><i class="fa fa-trash fa-fw text-danger"></i></a></div>');
-				var json = {
-					"container": "body",
-					"placement" : "bottom",
-					"html" : true,
-					"trigger" : "hover"
-				};
+			$('#comment_${comment.id} p').prepend( '[ ${comment.creatorUserName!} | ${comment.creationDate?date.xs!} ] ').append( '<div class="btn-comments"><a href="" class="toggle-modify-comment" data-json=\'{\"id_comment\": \"${comment.id}\", \"comment_text\": \"${comment_title}\", \"comment_start\":\"${comment.startingValidityDate!}\", \"comment_start_time\":\"${comment.startingValidityTime!}", \"comment_end\":\"${comment.endingValidityDate!}", \"comment_end_time\":\"${comment.endingValidityTime!}" }\' ><i class="fa fa-pencil fa-fw"></i></a><a href="jsp/admin/plugins/appointment/Comments.jsp?action=confirmRemoveComment&id_comment=${comment.id}" class="closeon text-danger"><i class="fa fa-remove fa-fw"></i></a></div>');
+			var json = {
+				"container": "body",
+				"placement" : "bottom",
+				"html" : true,
+				"trigger" : "hover"
+			};
 			<#else>
-				$('#comment_${comment.id}').append( '<div class="btn-comments"><span data-json=\'{\"id_comment\": \"${comment.id}\", \"comment_text\": \"${comment_title}\", \"comment_start\":\"${comment.startingValidityDate!}\", \"comment_start_time\":\"${comment.startingValidityTime!}", \"comment_end\":\"${comment.endingValidityDate!}", \"comment_end_time\":\"${comment.endingValidityTime!}", \"comment_creator\":\"${comment.creatorUserName!}", \"comment_creation_date\":\"${comment.creationDate!}" }\' ><i class="fa fa-edit fa-fw"></i></span></div>');
-				var json = {
-					"container": "body",
-					"placement" : "right",
-					"html" : true,
-					"trigger" : "click"
-				};
+	        $('#comment_${comment.id}').append( '<div class="btn-comments"><span data-json=\'{\"id_comment\": \"${comment.id}\", \"comment_text\": \"${comment_title}\", \"comment_start\":\"${comment.startingValidityDate!}\", \"comment_start_time\":\"${comment.startingValidityTime!}", \"comment_end\":\"${comment.endingValidityDate!}", \"comment_end_time\":\"${comment.endingValidityTime!}", \"comment_creator\":\"${comment.creatorUserName!}", \"comment_creation_date\":\"${comment.creationDate!}" }\' ><i class="fa fa-pencil fa-fw"></i></span></div>');
+	        var json = {
+	                "container": "body",
+	                "placement" : "right",
+	                "html" : true,
+	                "trigger" : "click"
+	            };
 	        </#if>
 			if ( '${comment.endingValidityDate}' == null || '${comment.endingValidityDate}' == undefined ){
 				labelEventDate='Le ' + '${comment.startingValidityDate?date.xs}';
@@ -333,28 +332,24 @@ $(function () {
 				moment.locale("${locale}");
 				labelEventDate = 'Du ' + '${comment.startingValidityDate?date.xs} ${comment.startingValidityTime!}'+ ' au '+ '${comment.endingValidityDate?date.xs} ${comment.endingValidityTime!}';
 			}
+			
 			<#if !comment.startingValidityTime?? && !comment.endingValidityTime??>
-				json.content = '<p>' + labelEventDate +'</p><p>Créé par <em>Par ${comment.creatorUserName!}</em> le <time>${comment.creationDate!}</time><hr>${comment_title}</p>';
-				$('#comment_${comment.id} p').popover( json );
+			json.content = '<p>' + labelEventDate +'</p><hr>${comment_title}<hr><p><strong>Par ${comment.creatorUserName!}</strong> le <time>${comment.creationDate!}</time></p>';
+			$('#comment_${comment.id} p').popover( json );
 			<#else>
-				$("#comment_${comment.id}").click( function ( event ) {
-				json.content = '<p>' + labelEventDate +'</p><hr>${comment_title}<hr><p><strong>Par ${comment.creatorUserName!}</strong> le <time>${comment.creationDate!}</time></p><a class="toggle-modify-comment" data-json=\'{\"id_comment\": \"${comment.id}\", \"comment_text\": \"${comment_title}\", \"comment_start\":\"${comment.startingValidityDate!}\", \"comment_start_time\":\"${comment.startingValidityTime!}", \"comment_end\":\"${comment.endingValidityDate!}", \"comment_end_time\":\"${comment.endingValidityTime!}", \"comment_creator\":\"${comment.creatorUserName!}", \"comment_creation_date\":\"${comment.creationDate!}" }\' ><i class="fa fa-edit fa-fw"></i></a><a href="jsp/admin/plugins/appointment/Comments.jsp?action=confirmRemoveComment&id_comment=${comment.id}" class="closeon"><i class="fa fa-trash fa-fw text-danger"></i></a>';
+			$("#comment_${comment.id}").click( function ( event ) {
+				json.content = '<p>' + labelEventDate +'</p><hr>${comment_title}<hr><p><strong>Par ${comment.creatorUserName!}</strong> le <time>${comment.creationDate!}</time></p><a class="toggle-modify-comment" data-json=\'{\"id_comment\": \"${comment.id}\", \"comment_text\": \"${comment_title}\", \"comment_start\":\"${comment.startingValidityDate!}\", \"comment_start_time\":\"${comment.startingValidityTime!}", \"comment_end\":\"${comment.endingValidityDate!}", \"comment_end_time\":\"${comment.endingValidityTime!}", \"comment_creator\":\"${comment.creatorUserName!}", \"comment_creation_date\":\"${comment.creationDate!}" }\' ><i class="fa fa-pencil fa-fw"></i></a><a href="jsp/admin/plugins/appointment/Comments.jsp?action=confirmRemoveComment&id_comment=${comment.id}" class="closeon text-danger"><i class="fa fa-remove fa-fw"></i></a>';
 			   $("div[id*=comment_]").not($("#comment_${comment.id}")).each(function(index, element){
 				   if( isOver( $(this), event ) ) {
 					    json.content += "<p>Du " + new Date(jQuery.parseJSON( $(this).children().children().attr("data-json") ).comment_start).toLocaleDateString("${language}") + " " + jQuery.parseJSON( $(this).children().children().attr("data-json") ).comment_start_time + " au " + new Date(jQuery.parseJSON( $(this).children().children().attr("data-json") ).comment_end).toLocaleDateString("${language}") + " " + jQuery.parseJSON( $(this).children().children().attr("data-json") ).comment_end_time + "</p>";
 					    json.content += "<hr>" + jQuery.parseJSON( $(this).children().children().attr("data-json") ).comment_text;
 					    json.content += "<hr><p><strong>Par " + jQuery.parseJSON( $(this).children().children().attr("data-json") ).comment_creator + "</strong> le " + jQuery.parseJSON( $(this).children().children().attr("data-json") ).comment_creation_date + "</p>";
-				    
 				   }
-				      
 			    });
-			   
- 			   $("#comment_${comment.id}").attr("data-content", json.content);
+			   $("#comment_${comment.id}").attr("data-content", json.content);
  			   $("#comment_${comment.id}").popover( json );
-			   
 			});
 			</#if>
-			 
 		</#list>
 	</#if>
 	var modComment = $('table').find('.toggle-modify-comment');
@@ -370,6 +365,24 @@ $(function () {
 		$( "#modify-comment" ).modal('show');
 	});
 	
+	var slotsChanged = sessionStorage.getItem('changedSlots'), slotStatus='', itemSelect='';
+	var aSlotsChanged = slotsChanged != null ? slotsChanged.split(',') : [];
+	if ( aSlotsChanged.length > 0 ){
+		aSlotsChanged.forEach( function( item, index, array) {
+			if ( index > 0 ){
+				
+				if ( $(item).hasClass( slotClass )){
+					$(item).addClass( 'border-change-' + slotClass );
+				} else {
+					itemselect=$(item).parents('tr').children( 'td.'+slotClass );
+					itemselect.addClass( 'border-change-' + slotClass );
+				}
+			} else {
+				slotClass = item;
+			}
+		});
+	}
+	sessionStorage.clear();
 });  
 
 /* Get appointment list to set in day view */

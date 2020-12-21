@@ -1,4 +1,14 @@
 /* **** Appointment Desk Styles **** */
+.fc-toolbar{
+	padding-bottom: 0;
+	padding-top: 0;
+}
+
+.fc-toolbar.fc-header-toolbar{
+	margin-bottom: 0;
+
+}
+
 .fc-center{
 	margin: auto
 } 
@@ -82,18 +92,16 @@
 #selectable .is-surbook > span,
 #selectable .place > span {
 	display: inline-block;
-	background-color: #6d015bce;
+	background-color: #6d015b;
 	border-bottom-color: #6d015b;
 	border-top-color: #6d015b;
 	color: white;
-	width: 85%;
+	width: 88%;
 	border-radius: 5px;
-	left: 15px;
+	left: 14px;
 }
 
 #selectable .is-surbook{
-	display: grid;
-	grid-template-columns: repeat( auto-fill, minmax(100px,1fr) );
 	font-size: 1rem;
 } 
 
@@ -123,6 +131,39 @@
 
 #selectable .place.slot-close{
 	border-left-color: #ff9102 !important;
+}
+
+/* Animation change slot state*/
+.border-change-slot-open {
+	animation: pulse-open 1s forwards;
+}
+
+@keyframes pulse-open {
+	0% {
+	  background-color:#ff9102;
+	}
+	50% {
+	  background-color: #00f829;
+	}
+	100% {
+	  background-color: transparent;
+	}
+}
+
+.border-change-slot-close{
+	animation: pulse-close .6s forwards;
+}
+
+@keyframes pulse-close {
+	0% {
+		background-color: #00f829;
+	}
+	50% {
+		background-color:#ff9102;
+	}
+	100% {
+	  background-color: transparent;
+	}
 }
 
 /* Comments */

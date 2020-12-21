@@ -30,7 +30,7 @@ function checkMultiRdv( app ){
 
 function setMultiSlot( el, app, info, surbook ){
 	/* Get position info                */
-	var elPos = el.offset(), elTop=Math.floor( elPos.top + 5 ), elLeft=Math.ceil( elPos.left + 15 ), elHeight = 40 * app.places, elWidth=Math.ceil( el.width() -20 ),  elClass='';
+	var elPos = el.offset(), elTop=Math.floor( elPos.top ), elLeft=Math.ceil( elPos.left + 15 ), elHeight = 40 * app.places, elWidth=( Math.ceil( el.width() - 20 ) ),  elClass='';
 	if( surbook ) { 
         elWidth=100;
         elLeft=elLeft - 10;
@@ -111,7 +111,7 @@ if( $('.selectable').length > 0 ){
 	selectable.table();
 
 	selectable.on( "end", function(e, selected, unselected) {
-		var slotData='', idx=1;
+		var slotData='',slotMarker='', idx=1;
 		var a=selectable.getSelectedNodes();
 		var slotSize = a.length;
 		if ( slotSize > 0 ){
@@ -119,7 +119,9 @@ if( $('.selectable').length > 0 ){
 			var slotSize = b.length;
 			b.forEach( function( el ){
 				slotData = slotData + el.dataset.slot;
-				if( idx < slotSize ) slotData = slotData + ','
+				slotMarker = slotMarker + el.dataset.marker;
+				if( idx < slotSize ) slotData = slotData + ',';
+				if( idx < slotSize ) slotMarker = slotMarker + ',';
 				idx++; 
 			});
 			slotData = '[' +  slotData.replace(/\'/ig,'"') + ']';
@@ -157,9 +159,15 @@ if( $('.selectable').length > 0 ){
 							cache: false,
 							data:{'data': newData},
 							success: function( data, textStatus, jQxhr ){
+								var itemStore = isOpen==0 ? 'slot-close' : 'slot-open';
+								console.log( itemStore );
+								sessionStorage.setItem('changedSlots', itemStore + ',' + slotMarker );
 								$('#manage_appointmentdesk').submit();
 							},
 							error: function( jqXhr, textStatus, errorThrown ){
+								var itemStore = isOpen==0 ? 'slot-close' : 'slot-open';
+								console.log( itemStore );
+								sessionStorage.setItem('changedSlots', itemStore + ',' + slotMarker );
 								$('#manage_appointmentdesk').submit();
 							},
 							xhrFields: {
