@@ -12,7 +12,8 @@
 		<@tabs params=' style="margin-top:1rem;"'>
 			<@tabList>
 				<@tabLink href='jsp/admin/plugins/appointment/ManageAppointmentSlots.jsp?view=manageTypicalWeek&id_form=${idForm!}' title='#i18n{appointment.typicalWeek.pageTitle}' />
-				<@tabLink href='jsp/admin/plugins/appointment/ManageAppointmentSlots.jsp?view=manageSpecificWeek&id_form=${idForm!}' title='#i18n{appointment.specificWeek.pageTitle}' />
+				<@tabLink href='jsp/admin/plugins/appointment/ManageSpecificWeek.jsp?view=manageSpecificWeek&id_form=${idForm!}' title='#i18n{appointment.specificWeek.pageTitle}' />
+				<@tabLink href='jsp/admin/plugins/appointment/ManageAnnualCalendar.jsp?view=manageAnnualCalendar&id_form=${idForm}' title='#i18n{appointment.annual.calendar.pageTitle}' />                             
 				<@tabLink active=true href='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?plugin_name=appointment-desk&id_form=${idForm!}' title='#i18n{appointment.specificDay.pageTitle}' />
 			</@tabList>
 			<@tabContent>
