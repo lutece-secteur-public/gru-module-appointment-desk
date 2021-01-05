@@ -181,6 +181,7 @@
 		<@tform id='form-validate' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' params='enctype="multipart/form-data"'>
 			<@input type='hidden' name='action' value='incrementMaxCapacity' />
 			<@input type='hidden' name='id_form' value='${idForm!}' />
+			<@input type='hidden' id='day' name='day' value='${day!}' />
 			<@formGroup labelFor='incrementing_value' labelKey='#i18n{module.appointment.desk.increment.labelIncrementingValue}' helpKey='${formGroupHelpKey!}' mandatory=true>
 					<@input type='number' name='incrementing_value' id='incrementing_value' value='1' maxlength=2 params='onkeypress="return validateQty(event);"' min=1 max=10 />
 			</@formGroup>
@@ -298,7 +299,11 @@ $(function () {
 		todayBtn : true,
 		todayHighLight : true,
 		autoclose : true
+	}).on( 'changeDate', function(e) {
+		// `e` here contains the extra attributes
+		$('#deskModal #day').val( $(this).val() );
 	});
+
 	$('#endingDate').datepicker({
 		language : "${language}",
 		weekStart : 1,
@@ -353,7 +358,9 @@ $(function () {
 			</#if>
 		</#list>
 	</#if>
+
 	var modComment = $('table').find('.toggle-modify-comment');
+
 	$(modComment).click( function(ev) {
 		ev.preventDefault();
 		var formValues = JSON.parse( $(this).attr( "data-json" ) );
@@ -389,16 +396,14 @@ $(function () {
 /* Get appointment list to set in day view */
 const appointments = [<#list list_appointment?sort_by('appointmentTakenSqlDate')?reverse?sort_by('nbPlaces')?reverse as app>
 <#compress>
-{"id":"${app.idAppointment}","lastName" : "${app.user.lastName}","firstName" : "${app.user.firstName}","places": ${app.nbPlaces},
-	"slots":[<#list app.slot?sort_by('startingDateTime') as slot>{"id" : "${slot.idSlot}", "start" : "${slot.startingDateTime!?datetime.iso?string["ddMM-HHmm"]}", },</#list>],
-},
+{"id":"${app.idAppointment}","lastName" : "${app.user.lastName}","firstName" : "${app.user.firstName}","places": ${app.nbPlaces},"slots":[<#list app.slot?sort_by('startingDateTime') as slot>{"id" : "${slot.idSlot}", "start" : "${slot.startingDateTime!?datetime.iso?string["ddMM-HHmm"]}", },</#list>],},
 </#compress>
 </#list>];
 
-/* Begin set RDV 			*/
-const nDesks=${numb_desk+1};
+/* Begin set RDV 		*/
+const nDesks=${numb_desk+1}, isMultiSlot=${appointmentForm.isMultislotAppointment?c};
 
-/* Add RDV in day view */
+/* Add RDV in day view  */
 setDayView( appointments );
 
 /* Comments */
