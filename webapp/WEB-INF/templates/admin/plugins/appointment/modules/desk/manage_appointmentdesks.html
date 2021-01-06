@@ -256,7 +256,7 @@ $(function () {
 	setSelection();
 
 	/* Add Form title */
-	$('.content-header h1').html("<a href=\"jsp/admin/plugins/appointment/ManageAppointmentForms.jsp\" title=\"#i18n{appointment.adminFeature.ManageAppointmentForm.name}\">#i18n{appointment.adminFeature.ManageAppointmentForm.name}</a> <small>${appointmentForm.title!}</small>");
+	<@headerTitle form=appointmentForm />
 	$('.bt-slot > .fa').toggle();
 	
 	$('#day').datepicker({
@@ -400,8 +400,14 @@ const appointments = [<#list list_appointment?sort_by('appointmentTakenSqlDate')
 </#compress>
 </#list>];
 
+/* Duree */
+<#list list_slot?sort_by('startingDateTime') as slot>
+let nDuree=${slot.endingTimestampDate?string["mm"]};
+<#break/>
+</#list>
+
 /* Begin set RDV 		*/
-const nDesks=${numb_desk+1}, isMultiSlot=${appointmentForm.isMultislotAppointment?c};
+const nDesks=${numb_desk+1}, isMultiSlot=${appointmentForm.isMultislotAppointment?c}, appUrlDetail='jsp/admin/plugins/appointment/ManageAppointments.jsp?view=viewAppointment&id_form=${idForm!}&id_appointment=';
 
 /* Add RDV in day view  */
 setDayView( appointments );
