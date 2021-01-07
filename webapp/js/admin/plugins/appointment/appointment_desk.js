@@ -51,12 +51,14 @@ function setUniSlots( x, app, info ){
 function setMultiSlots( el, app, info, surbook ){
 	/* Mark all multi slots occupied not only first  */
 	let aDateTime=app.slots[j].start.split('-');
+	if( nDuree ===0 ) nDuree=100;
 	for ( n=1; n <= app.places; n++ ){
 		let nTime=parseInt( aDateTime[1] ) + nDuree;
 		let xt = $( '.desk-' + x + '.start-' + aDateTime[0] + '-' + nTime  );
-		xt.addClass('is-multi-sloted' );
+		xt.addClass( 'is-multi-sloted' );
 		nDuree+=nDuree;
-		if( nDuree=60) nDuree=100;
+		if( nDuree===60) nDuree=100;
+		
 	}
 	/* Get position info  */
 	var elPos = el.offset(), elTop=Math.floor( elPos.top ), elLeft=Math.ceil( elPos.left + 15 ), elHeight = 40 * app.places, elWidth=( Math.ceil( el.width() - 10 ) ),  elClass='';
@@ -101,7 +103,9 @@ function setRDV( app, surbook ){
 			var info = '<span>' + app.lastName + ' ' + app.firstName + ' ' + strPlace + detailInfo + '</span>' 
 			if ( x < nDesks ){
 				/* If slot is not set or closed */
-				if ( ( st.html().trim().length === 0  ) && ( !st.hasClass( 'slot-close' ) ) && ( !st.hasClass( 'is-multi-sloted' ) )  ){
+				let msCond = true;
+				if( !isMultiSlot ){ msCond = !st.hasClass( 'is-multi-sloted' ) };
+				if ( ( st.html().trim().length === 0  ) && ( !st.hasClass( 'slot-close' ) ) && msCond  ){
 					/* Set info in slot */
 					$( st ).html( info );
 					

@@ -256,6 +256,7 @@ $(function () {
 	setSelection();
 
 	/* Add Form title */
+	$('.content-header > h1 > small').html( "${appointmentForm.title!}" );
 	<@headerTitle form=appointmentForm />
 	$('.bt-slot > .fa').toggle();
 	
@@ -402,7 +403,7 @@ const appointments = [<#list list_appointment?sort_by('appointmentTakenSqlDate')
 
 /* Duree */
 <#list list_slot?sort_by('startingDateTime') as slot>
-let nDuree=${slot.endingTimestampDate?string["mm"]};
+let nDuree=parseInt( ${slot.endingTimestampDate?string["mm"]} );
 <#break/>
 </#list>
 
