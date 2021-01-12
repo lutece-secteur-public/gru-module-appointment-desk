@@ -4,137 +4,136 @@
 /* Add RDV in day view 			*/
 function setDayView( appointments ){
     for ( i in appointments ) {
-        var hasClosed = false;
-        /* If an appointement has multi slot */
-        if( appointments[i].places > 1 ){
-            /* Check if a multi slot appointement has a closed slot*/
-            hasClosed=checkMultiRdv( appointments[i] )
-        }
-        /* Draw RDV in day view */
-        setRDV( appointments[i], hasClosed );
-    }
+        /* Draw RDV in day view 	*/
+        setRDV( appointments[i] );
+	}
+	checkSurbook();
+}
+
+/* function SetSurbook : Check the number of el in surbook	*/
+function checkSurbook( ){
+	var st = $('.desk-' + nDesks + '.is-surbook');	
+	st.each(function(){
+		var nLength = $(this).children('span').length, nLeft=0;
+		if( nLength > 0 ){
+			var nW = ( 100 / nLength ) + '%';
+			$(this).children('span').each(function(){
+				$(this).css('width', nW  )
+				if( nLeft > 0 ){ $(this).css('left', nLeft + 'px' )} ;
+				nLeft += 15
+			});
+			$(this).append('<span class="badge">' + nLength + '</span>');
+		}
+	});
+	var st = $('.desk-' + nDesks + '.is-surbook > .badge');	
+	st.click( 	function(){
+		var nTop=0;
+		$(this).siblings().css('width', '80%' ).css('left', 0 ).css('z-index', 100 ).each(function(){
+			$(this).css('top', nTop + 'px' )
+			nTop += 35;
+		});
+	});
 }
 
 /* function checkMultiRdv : Check if an appointement has a closed slot	*/
-function checkMultiRdv( app ){
-	var isClosed=false;
+function checkMultiRdv( app, desk ){
+	var isOccupied=false;
 	for ( k in app.slots) {
-		var st = $( '.slot-' + app.slots[k].id + '.start-' + app.slots[k].start ).not('.is-multi').first();
-		st.addClass('is-multi multi-' + app.id );
-		if( st.hasClass('slot-close') ){
-			isClosed = true;
+		var st = $('.desk-' + desk + '.slot-' + app.slots[k].id + '.start-' + app.slots[k].start);	
+		if( st.hasClass('slot-close') || st.hasClass('is-multi') ){
+			isOccupied = true;
 		}
 	}
-	return isClosed;
+	return isOccupied;
 }
 
-function setUniSlots( x, app, info ){
+/* function setMultiRdv : Multi RDV for multi Slot Form */
+function setMultiRdv( app, desk ){
+	var n=0;
+	for ( k in app.slots) {
+		var st = $('.desk-' + desk + '.slot-' + app.slots[k].id + '.start-' + app.slots[k].start);	
+		if( desk === nDesks ) {
+			st = $('.desk-' + desk + '.start-' + app.slots[k].start + '.is-surbook');
+		}
+		st.addClass('is-multi multi-' + app.id );
+		if ( n === 0 ){
+			st.html( setInfo( app ) ).addClass('is-first');
+		}
+		n++
+	}
+	st.addClass('is-last');
+}
+
+/* function setUniRdv : Multi RDV for non multi Slot Form */
+function setUniRdv( app, desk ){
 	/* Set extra multi values */
-	let multiDesk=x+1, isSurbooked = false, nbPlaced=1;
-	for ( n=1; n < app.places; n++ ){
+	var multiDesk=desk, info=setInfo( app );	
+	for ( n=1; n <= app.places; n++ ){
 		let xt = $( '.desk-' + multiDesk + '.start-' + app.slots[j].start );
-		if ( ( xt.html().trim().length === 0  ) && ( !xt.hasClass( 'is-multi-sloted' ) ) && ( !xt.hasClass( 'slot-close' ) ) ){
-			$( xt ).html( info ).addClass( 'is-multi-inline');
-			nbPlaced++;
+		if( multiDesk === nDesks ){
+			$( xt ).append( info );
+			break;
+		}	
+		if ( ( xt.html().trim().length === 0  ) && ( !xt.hasClass( 'is-multi' ) ) && ( !xt.hasClass( 'slot-close' ) ) ){
+			if( n===1){
+				$( xt ).html( info ).addClass('is-first-inline');
+			}
+			$( xt ).addClass( 'is-multi');
 		} else {
-			isSurbooked = true
+			if( multiDesk < nDesks ){
+				n--
+			}
 		}
 		multiDesk++;
+		if( n === app.places ){ xt.addClass('is-last-inline') }
 	}
-	if( isSurbooked ){
-		let xt = $( '.desk-' + nDesks + '.start-' + app.slots[j].start );
-		let surbookInfo = ( app.places - nbPlaced) > 0	 ? info.replace( '( Nb de places ' + app.places + ' )', '( A placer ' +  ( app.places - nbPlaced ) + ' )' ) : info;
-		$( xt ).html( surbookInfo );
-	}
+	
 }
 
-function setMultiSlots( el, app, info, surbook ){
-	/* Mark all multi slots occupied not only first  */
-	let aDateTime=app.slots[j].start.split('-');
-	if( nDuree ===0 ) nDuree=100;
-	for ( n=1; n <= app.places; n++ ){
-		let nTime=parseInt( aDateTime[1] ) + nDuree;
-		let xt = $( '.desk-' + x + '.start-' + aDateTime[0] + '-' + nTime  );
-		xt.addClass( 'is-multi-sloted' );
-		nDuree+=nDuree;
-		if( nDuree===60) nDuree=100;
-		
+/* function setInfo : label RDV */
+function setInfo( app ){
+	var strPlace='', detailInfo='<a target="_blank" href="' + appUrlDetail + app.id + '" ><i class="fas fa-link"></i></a>';
+	if( app.places > 1 ){
+		strPlace='( Nb de places ' + app.places + ' )';
 	}
-	/* Get position info  */
-	var elPos = el.offset(), elTop=Math.floor( elPos.top ), elLeft=Math.ceil( elPos.left + 15 ), elHeight = 40 * app.places, elWidth=( Math.ceil( el.width() - 10 ) ),  elClass='';
-	if( surbook ) { 
-        elWidth=100;
-        elLeft=elLeft - 10;
-		var surbTop=$('.surbook.top-'+ elTop ), nLeft=0;
-		if( surbTop.length > 0 ){
-            $(surbTop).each(function() {
-                nLeft +=  $(this).width();
-            });
-			elLeft = elLeft + nLeft;
-		}
-		elClass=' surbook top-' + elTop; 
-	}
-	/* Set HTML for multi-slot elements */
-	var newEl = '<div class="multi-slot multi-slot-' + app.id + elClass + '" style="top:' + elTop + 'px; left:' + elLeft + 'px; height:' + elHeight + 'px; width:' + elWidth + 'px"></div>';
-	/* Add to DOM */
-	$( 'body' ).append( newEl );
-	multi = '.multi-slot-' + app.id;
-	/* Set info in multi-slot */
-	$( multi ).html( info );
+	return '<span title="' + app.lastName + ' ' + app.firstName + strPlace + '">' + app.lastName + ' ' + app.firstName + ' ' + strPlace + detailInfo + '</span>';	
 }
 
 /* function setRDV : Draw appointement in the day grid */
-function setRDV( app, surbook ){
+function setRDV( app ){
+	/* For slots in the appointment [i] */
 	for ( j in app.slots) {
+		/* Iterate on desks */
 		for ( x = 1; x <= nDesks; x++ ) {
-			/* If a slot is closed then shift elements to surbook */
-			if ( app.places > 1  && surbook ){ 
-				x=nDesks;
-			};
-
-			/* Set table item selector  */
-			var st = $( '.desk-' + x + '.start-' + app.slots[j].start ), strPlace='';
-			if ( app.places > 1 ){ 
-				strPlace='( Nb de places ' + app.places + ' )';
-			};
-			// ;
-			let detailInfo='<a target="_blank" href="' + appUrlDetail + app.id + '" ><i class="fas fa-link"></i></a>';
-			/* Iterate on desk */
-			var info = '<span>' + app.lastName + ' ' + app.firstName + ' ' + strPlace + detailInfo + '</span>' 
-			if ( x < nDesks ){
-				/* If slot is not set or closed */
-				let msCond = true;
-				if( !isMultiSlot ){ msCond = !st.hasClass( 'is-multi-sloted' ) };
-				if ( ( st.html().trim().length === 0  ) && ( !st.hasClass( 'slot-close' ) ) && msCond  ){
-					/* Set info in slot */
-					$( st ).html( info );
-					
-					/* Get first multi element to create div placement over */
-					if( j==0 && app.places > 1 ){ 
-						if( isMultiSlot ){
-							setMultiSlots( st, app, info, false );
-						} else {
-							/* Set extra multi values */
-							$( st ).addClass( 'is-multi-inline');
-							setUniSlots( x, app, info );
-						}
-					};
-					/* If set return to other appointment */
-					break;
+			/* If appointement has multi places to set */
+			if( app.places > 1 ){
+				/* If appointement is multi sloted */
+				if( isMultiSlot ){
+					/* Check if a multi slot appointement has a closed slot*/
+					hasClosed=checkMultiRdv( app, x )
+					/* If a slot is closed or is multi rdv then shift elements to next desk */
+					if ( !hasClosed ){ 
+						setMultiRdv( app, x );
+						return true;
+					} 
+				} else {
+					/* Set appointments for non multi slots form */
+					setUniRdv( app, x );
+					return true;
 				}
 			} else {
-				/* Set info in surbook slot */
-				if( app.places > 1 ){ 
-					if( $('.multi-slot-' + app.id + '.surbook').length == 0 ){
-						if( isMultiSlot ){
-							setMultiSlots( st, app, info, true );
-						} else {
-							$( st ).append( info );
-						}
-					}
-				} else {
+				/* If appointement is unique */
+				var st = $( '.desk-' + x + '.start-' + app.slots[j].start );
+			    var info =  setInfo( app );
+				if( x === nDesks ) {
+					st = $('.desk-' + nDesks + '.start-' + app.slots[j].start + '.is-surbook');
 					$( st ).append( info );
-				};
+					break;
+				}
+				if ( ( st.html().trim().length === 0  ) && ( !st.hasClass( 'is-multi' ) ) && ( !st.hasClass( 'slot-close' ) ) ){
+					$( st ).append( info );
+					break;
+				}
 			}
 		}
 	}
@@ -157,8 +156,7 @@ if( $('.selectable').length > 0 ){
 	});
 
 	selectable.table();
-	selectable.on( "end", function(e, selected, unselected) {
-
+	selectable.on( "end", function( e, selected, unselected ){
 		var slotData='',slotMarker='', idx=1;
 		var a=selectable.getSelectedNodes();
 		var slotSize = a.length;
@@ -208,13 +206,11 @@ if( $('.selectable').length > 0 ){
 							data:{'data': newData},
 							success: function( data, textStatus, jQxhr ){
 								var itemStore = isOpen==0 ? 'slot-close' : 'slot-open';
-								console.log( itemStore );
 								sessionStorage.setItem('changedSlots', itemStore + ',' + slotMarker );
 								$('#manage_appointmentdesk').submit();
 							},
 							error: function( jqXhr, textStatus, errorThrown ){
 								var itemStore = isOpen==0 ? 'slot-close' : 'slot-open';
-								console.log( itemStore );
 								sessionStorage.setItem('changedSlots', itemStore + ',' + slotMarker );
 								$('#manage_appointmentdesk').submit();
 							},

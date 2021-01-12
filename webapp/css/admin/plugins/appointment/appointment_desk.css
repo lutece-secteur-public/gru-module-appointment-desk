@@ -6,7 +6,6 @@
 
 .fc-toolbar.fc-header-toolbar{
 	margin-bottom: 0;
-
 }
 
 .fc-center{
@@ -31,13 +30,6 @@
 .open-desk,
 #toggle-add-comment{
 	z-index: 99;
-}
-
-/* *** Surbook **** */
-.is-surbook span{
-	border: 1px solid #000;
-	border-radius: 5px;
-	margin-right: 2px;
 }
 
 /* **** ***** ***** */
@@ -78,32 +70,72 @@
 	width: 55px;
 }
 
-#selectable .selectable > a,
-#selectable .selectable > span{
-	padding: .5rem;
-	position: absolute;
-}
-
-/* EXTRA CSS 	*/
+/* Table DESK  	*/
 #selectable .place{
 	border-left: 5px solid transparent;
 }
 
-.multi-slot > span,
-#selectable .place > span,
-#selectable .is-surbook > span {
-	display: inline-block;
+#selectable .place > span {
 	background-color: #6d015b;
 	border-bottom-color: #6d015b;
 	border-top-color: #6d015b;
 	color: white;
 	width: 85%;
-	border-radius: 5px;
-	left: 14px;
-	position: relative;
+	border-radius: 15px;
+	padding: .95rem;
+	position: absolute;
+	top: 0;
+	left: 5px;
+	display: inline-block;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
 }
 
-.multi-slot > span > a,
+#selectable .place.is-multi{
+	background-color: #6d015b;
+}
+
+#selectable .place.is-multi > span{
+	display: inline-block;
+	position: absolute;
+	z-index: 1;
+}
+
+#selectable .place.is-multi.is-first{
+	border-top-right-radius: 30px;
+	border-top-left-radius: 30px;
+}
+
+#selectable .place.is-multi.is-first > span{
+	overflow: auto;
+	white-space: initial;
+	text-overflow: initial;
+    left: 0;
+    width: 89%;
+}
+
+#selectable .place.is-multi.is-last{
+	border-bottom-right-radius: 15px;
+	border-bottom-left-radius: 15px;
+}
+
+#selectable .place.is-multi.is-first-inline{
+	border-bottom-left-radius: 30px;
+	border-top-left-radius: 30px;
+}
+
+#selectable .place.is-multi.is-first-inline > span{
+	overflow: initial;
+	white-space: nowrap;
+	text-overflow: initial;
+}
+
+#selectable .place.is-multi.is-last-inline{
+	border-bottom-right-radius: 30px;
+	border-top-right-radius: 30px;
+}
+
 #selectable .place > span a,
 #selectable .is-surbook > span a{
 	display: none;
@@ -112,49 +144,36 @@
 	top: 5px;
 }
 
-.multi-slot > span:hover > a,
 #selectable .place > span:hover a,
 #selectable .is-surbook > span:hover a{
 	display: inline-block;
-}
-
-#selectable .is-surbook > span{
-	display: inline-flex;
-	width: auto;
-	padding: 2px 5px;
 }
 
 #selectable .is-surbook{
 	font-size: 1rem;
 } 
 
-#selectable .is-surbook > span {
+#selectable .is-surbook > span{
+	width: auto;
+	padding: 4px 8px;
+	border-radius: 15px;
 	background-color: #6d015b81;
+	position: absolute;
+	left: 0;
+	top: 0
 }
 
-.multi-slot{
-	font-family: Verdana,Arial,sans-serif;
-	font-size: 1em;
-	background-color:#6d015b;
+#selectable .is-surbook > span:hover{
+	background-color: #6d015b81;
 	color: #fff;
-	z-index: 1;
-	position:absolute; 
-	border-radius: 5px;
-	padding: 10px;
-}
-.multi-slot > span{
-	width: 95%;
-}
-.multi-slot > span > a{
-	top: 2px;
-}
-.multi-slot.surbook{
-	background-color: #6d015b81;
-	font-size: 1rem;
+	z-index: 99;
 }
 
-.is-multi-inline{
-	background-color: #6d015b81;
+#selectable .is-surbook > .badge{
+	background-color: #ff9a02;
+	left: auto;
+	right: 0;
+	top: 0
 }
 
 #selectable .place.slot-open{
@@ -165,7 +184,7 @@
 	border-left-color: #ff9102 !important;
 }
 
-/* Animation change slot state*/
+/* Animation change slot state */
 .border-change-slot-open {
 	animation: pulse-open 1s forwards;
 }

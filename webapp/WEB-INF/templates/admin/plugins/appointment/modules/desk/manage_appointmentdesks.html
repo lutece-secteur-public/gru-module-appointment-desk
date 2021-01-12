@@ -401,12 +401,6 @@ const appointments = [<#list list_appointment?sort_by('appointmentTakenSqlDate')
 </#compress>
 </#list>];
 
-/* Duree */
-<#list list_slot?sort_by('startingDateTime') as slot>
-let nDuree=parseInt( ${slot.endingTimestampDate?string["mm"]} );
-<#break/>
-</#list>
-
 /* Begin set RDV 		*/
 const nDesks=${numb_desk+1}, isMultiSlot=${appointmentForm.isMultislotAppointment?c}, appUrlDetail='jsp/admin/plugins/appointment/ManageAppointments.jsp?view=viewAppointment&id_form=${idForm!}&id_appointment=';
 
