@@ -7,32 +7,33 @@ function setDayView( appointments ){
         /* Draw RDV in day view 	*/
         setRDV( appointments[i] );
 	}
-	checkSurbook();
+	formatSurbook();
 }
 
 /* function SetSurbook : Check the number of el in surbook	*/
-function checkSurbook( ){
+function formatSurbook( ){
 	var st = $('.desk-' + nDesks + '.is-surbook');	
 	st.each(function(){
 		var nLength = $(this).children('span').length, nLeft=0;
 		if( nLength > 0 ){
-			var nW = ( 100 / nLength ) + '%';
+			var nW = ( 80 / nLength ) + '%';
 			$(this).children('span').each(function(){
 				$(this).css('width', nW  )
 				if( nLeft > 0 ){ $(this).css('left', nLeft + 'px' )} ;
-				nLeft += 15
+				nLeft += 30
 			});
-			$(this).append('<span class="badge">' + nLength + '</span>');
+			$(this).append('<div class="badge">' + nLength + '</div>');
 		}
 	});
-	var st = $('.desk-' + nDesks + '.is-surbook > .badge');	
-	st.click( 	function(){
-		var nTop=0;
-		$(this).siblings().css('width', '80%' ).css('left', 0 ).css('z-index', 100 ).each(function(){
-			$(this).css('top', nTop + 'px' )
-			nTop += 35;
-		});
-	});
+	// var st = $('.desk-' + nDesks + '.is-surbook > .badge');	
+	// st.click( 	function(){
+	// 	var nTop=0;
+	// 	$(this).siblings().css('width', '80%' ).css('left', 0 ).css('z-index', 100 ).each(function(){
+	// 		$(this).css('top', nTop + 'px' )
+	// 		nTop += 35;
+	// 	});
+	// });
+
 }
 
 /* function checkMultiRdv : Check if an appointement has a closed slot	*/
@@ -43,6 +44,24 @@ function checkMultiRdv( app, desk ){
 		if( st.hasClass('slot-close') || st.hasClass('is-multi') ){
 			isOccupied = true;
 		}
+	}
+	return isOccupied;
+}
+
+/* function checkMultiRdv : Check if an appointement has a closed slot	*/
+function checkUniRdv( nbPlaces, start ){
+	let isOccupied=false, nbOccupied=0;
+	for ( u=1; u <= nDesks; u++ ){
+		nbOccupied++;
+		let ut = $( '.desk-' + u + '.start-' + start );	
+		if( ut.hasClass('slot-close') || ut.hasClass('is-multi') ){
+			nbOccupied--;
+		}
+	}
+	if( nbPlaces < nbOccupied ){
+		isOccupied = true;
+	} else {
+		isOccupied = false;
 	}
 	return isOccupied;
 }
@@ -67,36 +86,37 @@ function setMultiRdv( app, desk ){
 /* function setUniRdv : Multi RDV for non multi Slot Form */
 function setUniRdv( app, desk ){
 	/* Set extra multi values */
-	var multiDesk=desk, info=setInfo( app );	
-	for ( n=1; n <= app.places; n++ ){
-		let xt = $( '.desk-' + multiDesk + '.start-' + app.slots[j].start );
-		if( multiDesk === nDesks ){
-			$( xt ).append( info );
-			break;
-		}	
-		if ( ( xt.html().trim().length === 0  ) && ( !xt.hasClass( 'is-multi' ) ) && ( !xt.hasClass( 'slot-close' ) ) ){
-			if( n===1){
-				$( xt ).html( info ).addClass('is-first-inline');
+	var info=setInfo( app ), multiDesk=desk;	
+	if ( checkUniRdv( app.places, app.slots[j].start ) ){
+		for ( n=1; n <= app.places; n++ ){
+			//multiDesk = checkUniRdv( app.places, app.slots[j].start ) ? nDesks : multiDesk;
+			let xt = $( '.desk-' + multiDesk + '.start-' + app.slots[j].start );
+			if ( ( xt.html().trim().length === 0  ) && ( !xt.hasClass( 'is-multi' ) ) && ( !xt.hasClass( 'slot-close' ) ) ){
+				if( n===1){
+					$( xt ).html( info ).addClass('is-first-inline');
+				}
+				$( xt ).addClass( 'is-multi' );
+			} else {
+				if( multiDesk < nDesks ){
+					n--
+				}
 			}
-			$( xt ).addClass( 'is-multi');
-		} else {
-			if( multiDesk < nDesks ){
-				n--
-			}
+			multiDesk++;
+			if( n === app.places ){ xt.addClass('is-last-inline') }
 		}
-		multiDesk++;
-		if( n === app.places ){ xt.addClass('is-last-inline') }
+	} else {
+		let xt = $( '.desk-' + nDesks + '.start-' + app.slots[j].start );
+		$( xt ).append( info );
 	}
-	
 }
 
 /* function setInfo : label RDV */
 function setInfo( app ){
 	var strPlace='', detailInfo='<a target="_blank" href="' + appUrlDetail + app.id + '" ><i class="fas fa-link"></i></a>';
 	if( app.places > 1 ){
-		strPlace='( Nb de places ' + app.places + ' )';
+		strPlace= isMultiSlot ? '<br>( Nb de places ' + app.places + ' )' : '(&nbsp;Nb de places ' + app.places + '&nbsp;)' ;
 	}
-	return '<span title="' + app.lastName + ' ' + app.firstName + strPlace + '">' + app.lastName + ' ' + app.firstName + ' ' + strPlace + detailInfo + '</span>';	
+	return '<span class="multi-' + app.id + '" title="' + app.lastName + ' ' + app.firstName + strPlace + '">' + app.lastName + ' ' + app.firstName + ' ' + strPlace + detailInfo + '</span>';	
 }
 
 /* function setRDV : Draw appointement in the day grid */

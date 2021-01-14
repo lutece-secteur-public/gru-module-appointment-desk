@@ -75,6 +75,7 @@
 	border-left: 5px solid transparent;
 }
 
+/**/
 #selectable .place > span {
 	background-color: #6d015b;
 	border-bottom-color: #6d015b;
@@ -92,11 +93,13 @@
 	overflow: hidden;
 }
 
-#selectable .place.is-multi{
-	background-color: #6d015b;
-}
+/* is-multi styles  */
 
-#selectable .place.is-multi > span{
+#selectable .place.is-multi{
+	background-color: #6d015b !important;
+} 
+
+#selectable .is-multi > span{
 	display: inline-block;
 	position: absolute;
 	z-index: 1;
@@ -125,7 +128,7 @@
 	border-top-left-radius: 30px;
 }
 
-#selectable .place.is-multi.is-first-inline > span{
+#selectable .is-multi.is-first-inline > span{
 	overflow: initial;
 	white-space: nowrap;
 	text-overflow: initial;
@@ -136,46 +139,63 @@
 	border-top-right-radius: 30px;
 }
 
-#selectable .place > span a,
-#selectable .is-surbook > span a{
+#selectable span a{
 	display: none;
 	position: absolute;
 	right: 5px;
 	top: 5px;
 }
 
-#selectable .place > span:hover a,
-#selectable .is-surbook > span:hover a{
+#selectable span:hover a{
 	display: inline-block;
 }
 
+/* Surbook */
 #selectable .is-surbook{
 	font-size: 1rem;
 } 
 
 #selectable .is-surbook > span{
 	width: auto;
-	padding: 4px 8px;
-	border-radius: 15px;
 	background-color: #6d015b81;
+	border-radius: 15px;
+	padding: 4px 8px;
 	position: absolute;
 	left: 0;
-	top: 0
-}
+	top: 0;
+	color: #fff;
+	z-index: 1;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+    left: 0;
+} 
 
 #selectable .is-surbook > span:hover{
-	background-color: #6d015b81;
+	background-color: #6d015b;
 	color: #fff;
-	z-index: 99;
+	z-index: 50;
+	white-space: initial;
 }
 
 #selectable .is-surbook > .badge{
+	position: absolute;
 	background-color: #ff9a02;
 	left: auto;
 	right: 0;
-	top: 0
+	top: 0;
+	z-index: 100;
 }
 
+/* JS Hover surbook */
+.bg-multi{
+	background-color: #6d015b !important;
+}
+.bg-multi span{
+	display: none;
+}
+
+/* Slot open / Close */
 #selectable .place.slot-open{
 	border-left-color: #00f829;
 }
@@ -217,6 +237,38 @@
 	}
 }
 
+/* Animation change slot state */
+.border-change-slot-open-multi {
+	animation: pulse-open-multi 1s forwards;
+}
+
+@keyframes pulse-open-multi {
+	0% {
+	  background-color:#ff9102;
+	}
+	50% {
+	  background-color: #00f829;
+	}
+	100% {
+	  background-color: #6d015b;
+	}
+}
+
+.border-change-slot-close-multi{
+	animation: pulse-close-multi .6s forwards;
+}
+
+@keyframes pulse-close-multi {
+	0% {
+		background-color: #00f829;
+	}
+	50% {
+		background-color:#ff9102;
+	}
+	100% {
+	  background-color: #6d015b;
+	}
+}
 /* Comments */
 .table-responsive{
 	overflow: visible !important;

@@ -379,19 +379,32 @@ $(function () {
 	if ( aSlotsChanged.length > 0 ){
 		aSlotsChanged.forEach( function( item, index, array) {
 			if ( index > 0 ){
-				
 				if ( $(item).hasClass( slotClass )){
+					if( $(item).hasClass( '.isMulti' ) ){
+						slotClass += '-multi'
+					}
 					$(item).addClass( 'border-change-' + slotClass );
 				} else {
 					itemselect=$(item).parents('tr').children( 'td.'+slotClass );
-					itemselect.addClass( 'border-change-' + slotClass );
+					itemselect.addClass('border-change-' + slotClass );
 				}
 			} else {
 				slotClass = item;
 			}
 		});
 	}
+	
 	sessionStorage.clear();
+	
+	$('.is-multi.is-surbook > span').hover(
+		function() {
+			var multi = '.is-multi.is-surbook.' + $( this ).attr('class' );
+			$( multi ).addClass( 'bg-multi' ).children('span').addClass('hidden').first().removeClass('hidden');
+		}, function() {
+			var multi = '.is-multi.is-surbook.' + $( this ).attr('class' );
+			$( multi ).removeClass( 'bg-multi' ).children('span').removeClass('hidden');
+		}
+	);
 });  
 
 /* Get appointment list to set in day view */
@@ -420,6 +433,7 @@ function isOver( element, e ) {
 		return false;
 	}
 }
+
 </script>
 <#include "/admin/util/editor/editor.html" />
 <@initEditor type='comment' />
