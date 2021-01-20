@@ -93,7 +93,7 @@
 				</td>
 				<td style="width:${110*x}px;" class="bg-danger"></td>
 			</tr>
-			<@tableHeadBodySeparator class="fc-desk-scroll" />
+			<@tableHeadBodySeparator />
 			<#assign idx=1>
 			<#list list_slot?sort_by('startingDateTime') as slot>
 				<tr <#if idx=1>class="first"</#if>>
