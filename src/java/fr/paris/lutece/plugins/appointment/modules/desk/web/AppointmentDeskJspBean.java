@@ -35,6 +35,7 @@
 
 package fr.paris.lutece.plugins.appointment.modules.desk.web;
 
+import fr.paris.lutece.api.user.User;
 import fr.paris.lutece.plugins.appointment.business.appointment.Appointment;
 import fr.paris.lutece.plugins.appointment.business.comment.Comment;
 import fr.paris.lutece.plugins.appointment.business.form.Form;
@@ -118,6 +119,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String MARK_LIST_APPOINTMENT = "list_appointment";
     private static final String MARK_LIST_TYPE= "list_types";
     private static final String MARK_FORM = "appointmentForm";
+    private static final String MARK_ACTIVATE_EDIT_MODE= "activateEditMode";
 
     
     
@@ -154,26 +156,25 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     @View( value = VIEW_MANAGE_APPOINTMENTDESKS, defaultView = true )
     public String getManageAppointmentDesks( HttpServletRequest request )
     {
-        int nIdForm = Integer.parseInt( request.getParameter( PARAMETER_ID_FORM ) );
+    	String strIdForm = request.getParameter( PARAMETER_ID_FORM );
+        int nIdForm = Integer.parseInt( strIdForm );
         String strDayDate = request.getParameter( PARAMETER_DATE_DAY );
+        boolean activateEditMode = true;
         LocalDate dateDay = null;
-
+        if ( !RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, strIdForm, AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM,
+                (User) getUser( ) ) )
+        {
+        	activateEditMode = false;
+        }
         Form form = FormService.findFormLightByPrimaryKey( nIdForm );
-       HashMap<LocalDate, WeekDefinition> mapWeekDefinition = WeekDefinitionService.findAllWeekDefinition( nIdForm );
-
-       /* List<WeekDefinition> listWeekDefinition = WeekDefinitionService.findListWeekDefinition( nIdForm );
-        Map<LocalDate, ReservationRule> mapReservationRule = ReservationRuleService.findAllReservationRule( nIdForm, listWeekDefinition );
-*/
+        HashMap<LocalDate, WeekDefinition> mapWeekDefinition = WeekDefinitionService.findAllWeekDefinition( nIdForm );
         if ( StringUtils.isNotEmpty( strDayDate ) )
         {
-
             Date dateofDay = DateUtil.formatDate( strDayDate, getLocale( ) );
             dateDay = dateofDay.toInstant( ).atZone( ZoneId.systemDefault( ) ).toLocalDate( );
-
         }
         else
         {
-
             dateDay = LocalDate.now( );
             strDayDate = DateUtil.getDateString( Date.from( dateDay.atStartOfDay( ).atZone( ZoneId.systemDefault( ) ).toInstant( ) ), getLocale( ) );
         }
@@ -197,6 +198,8 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         
 		List<Appointment> listAppt = AppointmentService.findListAppointmentsByFilter(filter);
 		_nMaxCapacity= appointmentDesk;
+		
+        model.put( MARK_ACTIVATE_EDIT_MODE, activateEditMode);
         model.put( MARK_LIST_COMMENTS, listComment);
         model.put( PARAMETER_NUMB_DESK, appointmentDesk );
         model.put( MARK_LIST_SLOT, listSlot);
@@ -245,7 +248,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
    		}
          
          if ( !RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, Integer.toString(listSlots.get(0).getIdForm()), AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM,
-     			getUser( ) ) )
+        		 (User) getUser( ) ) )
          {
         	 AppLogService.error( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM, new AccessDeniedException( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM ));
  	         json.element( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_ACCESS_DENIED, getLocale( ) ) );
@@ -294,7 +297,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
 		}
 
         if ( !RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, Integer.toString(listSlots.get(0).getIdForm()), AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM,
-    			getUser( ) ) )
+        		(User) getUser( ) ) )
         {
         	AppLogService.error( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM, new AccessDeniedException( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM ));
 	        json.element( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_ACCESS_DENIED, getLocale( ) ) );
@@ -311,10 +314,17 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     }
     
     @Action( ACTION_INCREMENT_MAX_CAPACITY )
-    public String doIncrementMaxCapacity( HttpServletRequest request ) 
+    public String doIncrementMaxCapacity( HttpServletRequest request ) throws AccessDeniedException 
     {
     	IncrementSlot incrementSlot= new IncrementSlot( );
-        populate( request, incrementSlot );
+    	String strIdForm = request.getParameter( PARAMETER_ID_FORM );
+    	if ( !RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, strIdForm, AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM,
+                (User) getUser( ) ) )
+        {
+            throw new AccessDeniedException( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM );
+        }
+    	populate( request, incrementSlot );
+        
         AppointmentDeskService.incrementMaxCapacity( incrementSlot);
 
         return getManageAppointmentDesks( request );
