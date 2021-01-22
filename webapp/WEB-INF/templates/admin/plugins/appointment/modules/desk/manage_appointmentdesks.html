@@ -62,12 +62,12 @@
 				</th>
 				<#assign x=numb_desk>
 				<#list 1..x as seq >
-					<th style="width:${100*x}px;">#i18n{module.appointment.desk.label.desk} #i18n{module.appointment.desk.label.deskNo}${seq}</th>
+					<th>#i18n{module.appointment.desk.label.desk} #i18n{module.appointment.desk.label.deskNo}${seq}</th>
 				</#list>
-				<th style="width:${100*x}px;" class="header-surbook bg-danger">#i18n{module.appointment.desk.label.surbooking}</th>
+				<th class="header-surbook bg-danger">#i18n{module.appointment.desk.label.surbooking}</th>
 			</tr>
 			<tr>
-				<td style="width:${100*x}px;">
+				<td>
 					<@button id='toggle-add-comment' style='none' class='btn btn-link' title='#i18n{module.appointment.desk.label.addComment}' hideTitle=[''] params=' data-toggle="modal" data-target="#commentModal" ' buttonNested=true>
 						<@iconStack class='fa-sm'>
 							<@icon prefix='far fa-' style='comment' class='fa-stack-2x' />
@@ -75,7 +75,7 @@
 						</@iconStack>
 					</@button>								
 				</td>
-				<td style="width:${110*x}px;" colspan="${x}">
+				<td colspan="${x}">
 				<#if list_comments?size gt 0>
 					<#list list_comments as comment>
 						<#if !comment.startingValidityTime?? && !comment.endingValidityTime??>
@@ -91,7 +91,7 @@
 					</#list>
 				</#if>
 				</td>
-				<td style="width:${110*x}px;" class="bg-danger"></td>
+				<td class="bg-danger"></td>
 			</tr>
 			<@tableHeadBodySeparator />
 			<#assign idx=1>
