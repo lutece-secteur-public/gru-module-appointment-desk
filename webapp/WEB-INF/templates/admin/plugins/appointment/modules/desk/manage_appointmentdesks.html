@@ -41,7 +41,7 @@
 				<@tform type='inline' id='manage_appointmentdesk' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp'>
 					<input type="hidden" name="id_form" value="${idForm!1}">
 					<button type="button" class="fc-datepicker btn btn-primary btn-sm">
-						Choisir une date
+						Choisir une date 
 					</button>
 					<@input type='text' name='day' id='day' value="${day!''}" params=' style="border:none;font-family: \'Source Sans Pro\',sans-serif;font-size:30px"' />
 				</@tform>
@@ -129,7 +129,6 @@
 
 <script src="js/plugins/appointment/moment.min.js"></script>
 <script src="js/plugins/appointment/bootstrap-datetimepicker.min.js"></script>
-
 <script src="js/bootstrap-datepicker.js"></script>
 <script src="js/locales/bootstrap-datepicker.<@getRegional language=language />.js" charset="utf-8"></script>
 
@@ -228,18 +227,17 @@
 		<@button type='button' params='data-dismiss="modal"' title='#i18n{portal.util.labelCancel}' buttonIcon='times' color='default' />
 	</@modalFooter>
 </@modal>
-
+<#if activateEditMode>
 <script src="js/admin/plugins/appointment/selectable.min.js"></script>
 <script src="js/admin/plugins/appointment/selectable.table.min.js"></script>
+</#if>
 <script src="js/admin/plugins/appointment/appointment_desk.js"></script>
 <script>
 $(function () {
+	<#if activateEditMode>
 	/* Add selectable function to table cell */
 	setSelection();
-
-	/* Add Form title */
-	// $('.content-header > h1 > small').html( "${appointmentForm.title!}" );
-	// <@headerTitle form=appointmentForm />
+	</#if>
 	$('.bt-slot > .fa').toggle();
 	
 	$('#day').datepicker({
