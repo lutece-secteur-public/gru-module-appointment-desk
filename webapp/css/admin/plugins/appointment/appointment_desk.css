@@ -1,4 +1,8 @@
 /* **** Appointment Desk Styles **** */
+.nav-tabs-custom>.tab-content {
+     padding: 10px 0;
+}
+
 .fc-toolbar{
 	padding-bottom: 0;
 	padding-top: 0;
@@ -32,9 +36,18 @@
 	z-index: 99;
 }
 
+/* Scrollable tr/td  */
+.fc-desk-scroll {
+	display: block;
+	width: 97.1vw;
+    overflow-y: auto;	
+    height: 50vh;
+}
+
 /* **** ***** ***** */
 #selectable{
 	margin: 2rem auto;
+	width: 96vw;
 }
 
 #selectable td.ui-selected, 
@@ -50,6 +63,7 @@
 	border: 1px solid #aaa;
 	margin: 0;
 	height: 30px ;
+	/* padding: 5px 7.25px; */
 }
  
 #selectable th  {    
@@ -60,27 +74,28 @@
 }
 
 #selectable th:first-child{
-	width: 55px;
+	width: 48px;
 	font-weight: 400;
 	font-size: 14px;
 }
 
 #selectable td:first-child{
-	padding: 0 .5em;
+	/* padding: 0 .5em; */
 	width: 55px;
 }
 
 /* Table DESK  	*/
 #selectable .place{
 	border-left: 5px solid transparent;
+	/* padding: 0 7.5px; */
 }
 
 /**/
 #selectable .place > span {
-	background-color: #6d015b;
-	border-bottom-color: #6d015b;
-	border-top-color: #6d015b;
-	color: white;
+	background-color: #DAA6F1;
+	border-bottom-color: #DAA6F1;
+	border-top-color: #DAA6F1;
+	color: #222;
 	width: 85%;
 	border-radius: 15px;
 	padding: .95rem;
@@ -94,9 +109,8 @@
 }
 
 /* is-multi styles  */
-
 #selectable .place.is-multi{
-	background-color: #6d015b !important;
+	background-color: #DAA6F1 !important;
 } 
 
 #selectable .is-multi > span{
@@ -106,8 +120,8 @@
 }
 
 #selectable .place.is-multi.is-first{
-	border-top-right-radius: 30px;
-	border-top-left-radius: 30px;
+	border-top-right-radius: 20px;
+	border-top-left-radius: 20px;
 }
 
 #selectable .place.is-multi.is-first > span{
@@ -115,17 +129,17 @@
 	white-space: initial;
 	text-overflow: initial;
     left: 0;
-    width: 89%;
+    width: 94%;
 }
 
 #selectable .place.is-multi.is-last{
-	border-bottom-right-radius: 15px;
-	border-bottom-left-radius: 15px;
+	border-bottom-right-radius: 20px;
+	border-bottom-left-radius: 20px;
 }
 
 #selectable .place.is-multi.is-first-inline{
-	border-bottom-left-radius: 30px;
-	border-top-left-radius: 30px;
+	border-bottom-left-radius: 20px;
+	border-top-left-radius: 20px;
 }
 
 #selectable .is-multi.is-first-inline > span{
@@ -135,8 +149,8 @@
 }
 
 #selectable .place.is-multi.is-last-inline{
-	border-bottom-right-radius: 30px;
-	border-top-right-radius: 30px;
+	border-bottom-right-radius: 20px;
+	border-top-right-radius: 20px;
 }
 
 #selectable span a{
@@ -157,13 +171,13 @@
 
 #selectable .is-surbook > span{
 	width: auto;
-	background-color: #6d015b81;
+	background-color: #DAA6F181;
 	border-radius: 15px;
 	padding: 4px 8px;
 	position: absolute;
 	left: 0;
 	top: 0;
-	color: #fff;
+	color: #222;
 	z-index: 1;
 	overflow: hidden;
 	white-space: nowrap;
@@ -172,8 +186,8 @@
 } 
 
 #selectable .is-surbook > span:hover{
-	background-color: #6d015b;
-	color: #fff;
+	background-color: #DAA6F1;
+	color: #222;
 	z-index: 50;
 	white-space: initial;
 }
@@ -187,15 +201,15 @@
 	z-index: 100;
 }
 
-/* JS Hover surbook */
+/* JS Hover surbook 		*/
 .bg-multi{
-	background-color: #6d015b !important;
+	background-color: #DAA6F1 !important;
 }
 .bg-multi span{
 	display: none;
 }
 
-/* Slot open / Close */
+/* Slot open / Close 		*/
 #selectable .place.slot-open{
 	border-left-color: #00f829;
 }
@@ -250,7 +264,7 @@
 	  background-color: #00f829;
 	}
 	100% {
-	  background-color: #6d015b;
+	  background-color: #DAA6F1;
 	}
 }
 
@@ -266,10 +280,11 @@
 		background-color:#ff9102;
 	}
 	100% {
-	  background-color: #6d015b;
+	  background-color: #DAA6F1;
 	}
 }
-/* Comments */
+
+/* Comments 				*/
 .table-responsive{
 	overflow: visible !important;
 }
