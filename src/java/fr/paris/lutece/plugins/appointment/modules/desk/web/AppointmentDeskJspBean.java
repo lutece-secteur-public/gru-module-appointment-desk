@@ -56,6 +56,7 @@ import fr.paris.lutece.plugins.appointment.web.dto.AppointmentFormDTO;
 import fr.paris.lutece.portal.service.util.AppLogService;
 import fr.paris.lutece.portal.service.admin.AccessDeniedException;
 import fr.paris.lutece.portal.service.i18n.I18nService;
+import fr.paris.lutece.portal.service.mailinglist.AdminMailingListService;
 import fr.paris.lutece.portal.service.rbac.RBACService;
 import fr.paris.lutece.portal.util.mvc.admin.annotations.Controller;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.Action;
@@ -120,7 +121,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String MARK_LIST_TYPE= "list_types";
     private static final String MARK_FORM = "appointmentForm";
     private static final String MARK_ACTIVATE_EDIT_MODE= "activateEditMode";
-
+    private static final String MARK_MAILING_LIST = "mailing_list";
     
     
     // Properties
@@ -210,6 +211,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         model.put( MARK_FORM, form );
         model.put( MARK_MACRO_LOCALE, getLocale( ) );
         model.put( MARK_LIST_TYPE, getListTypes( ));
+        model.put( MARK_MAILING_LIST, AdminMailingListService.getMailingLists( getUser( )  ));
 
 
         return getPage( PROPERTY_PAGE_TITLE_MANAGE_APPOINTMENTDESKS, TEMPLATE_MANAGE_APPOINTMENTDESKS, model );
