@@ -3,7 +3,8 @@
 <link rel="stylesheet" href="css/admin/plugins/appointment/fullcalendar.custom.css" >
 <link rel="stylesheet" href="css/admin/plugins/appointment/appointment_desk.css">
 <link rel='stylesheet' href="css/plugins/appointment/bootstrap-datetimepicker.css">
-<@appointmentTabs tab='day' form=appointmentForm >
+
+<@appointmentTabs tab='day' form=appointmentForm context='desk'>
 	<div id="calendar" class="fc ui-widget fc-ltr">
 		<div class="fc-toolbar fc-header-toolbar row">
 			<div class="fc-left">
@@ -127,8 +128,10 @@
 	</div>
 </@appointmentTabs>
 
-<script src="js/plugins/appointment/moment.min.js"></script>
-<script src="js/plugins/appointment/bootstrap-datetimepicker.min.js"></script>
+<script>$(".nav-tabs > li").toggle();</script>
+<script src="js/admin/plugins/appointment/moment.min.js"></script>
+<script src="js/admin/plugins/appointment/locale-all.js"></script>
+<script src="js/admin/plugins/appointment/bootstrap-datetimepicker.min.js"></script>
 <script src="js/bootstrap-datepicker.js"></script>
 <script src="js/locales/bootstrap-datepicker.<@getRegional language=language />.js" charset="utf-8"></script>
 
@@ -219,10 +222,11 @@
 <script src="js/admin/plugins/appointment/appointment_desk.js"></script>
 <script>
 $(function () {
+	setDayTabs();
 	<#if activateEditMode>
 	/* Add selectable function to table cell */
 	setSelection();
-	</#if>
+	</#if>	
 	$('.bt-slot > .fa').toggle();
 	
 	$('#day').datepicker({

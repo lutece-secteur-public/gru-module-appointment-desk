@@ -31,6 +31,19 @@
 	margin-bottom: 1px
 }
 
+#desk-comments p{
+    padding-left: 5px;
+	background-color: rgb(233, 250, 0);
+	border-color:rgb(233, 250, 0);
+	color: rgb(0, 0, 0);
+	border-radius: 5px;
+	text-align: left;
+}
+
+#desk-comments p:hover{
+    font-weight: 700;
+}
+
 .open-desk,
 #toggle-add-comment{
 	z-index: 99;

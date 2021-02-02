@@ -1,4 +1,16 @@
 /********************************/
+/*  Appointment Day Tabs        */
+/********************************/
+function setDayTabs(){
+	var ctx=window.location.search.split('&');
+	if( ctx.length==3 ){
+		var tabCtx=ctx[2].split('=');
+		var tabGroup='[data-menu=\'' + tabCtx[1] + '\']';
+		$(tabGroup).toggle();
+	}
+}
+
+/********************************/
 /*  Appointment Desk Functions  */
 /********************************/
 /* Add RDV in day view 			*/
@@ -165,7 +177,7 @@ if( $('.selectable').length > 0 ){
 	const selectable = new Selectable({
 		appendTo: table,
 		filter: table.querySelectorAll(".selectable"),
-		ignore: "a",
+		ignore: "a, p",
 		toggle: true,
 		saveState: 10,
 		lasso: {
