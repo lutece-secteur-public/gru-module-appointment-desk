@@ -7,6 +7,7 @@ function setDayTabs(){
 		var tabCtx=ctx[2].split('=');
 		var tabGroup='[data-menu=\'' + tabCtx[1] + '\']';
 		$(tabGroup).toggle();
+		$('input[name="context"]').val( tabCtx[1] );
 	}
 }
 
@@ -34,18 +35,8 @@ function formatSurbook( ){
 				if( nLeft > 0 ){ $(this).css('left', nLeft + 'px' )} ;
 				nLeft += 30
 			});
-			$(this).append('<div class="badge">' + nLength + '</div>');
 		}
 	});
-	// var st = $('.desk-' + nDesks + '.is-surbook > .badge');	
-	// st.click( 	function(){
-	// 	var nTop=0;
-	// 	$(this).siblings().css('width', '80%' ).css('left', 0 ).css('z-index', 100 ).each(function(){
-	// 		$(this).css('top', nTop + 'px' )
-	// 		nTop += 35;
-	// 	});
-	// });
-
 }
 
 /* function checkMultiRdv : Check if an appointement has a closed slot	*/
@@ -88,11 +79,15 @@ function setMultiRdv( app, desk ){
 		}
 		st.addClass('is-multi multi-' + app.id );
 		if ( n === 0 ){
-			st.html( setInfo( app ) ).addClass('is-first');
+			st.append( setInfo( app ) ).addClass('is-first');
 		}
 		n++
 	}
 	st.addClass('is-last');
+	/* Set height on first item by calc the height from first item */
+	var wSt = st.css('width').replace('px','');
+	var ft = $('.desk-' + desk + '.is-multi.multi-' + app.id + '.is-first > .multi-' + app.id );
+	ft.css('height', `${(40 * n) - 15}px` ).css('width', + wSt - 8 + 'px');
 }
 
 /* function setUniRdv : Multi RDV for non multi Slot Form */
@@ -114,7 +109,14 @@ function setUniRdv( app, desk ){
 				}
 			}
 			multiDesk++;
-			if( n === app.places ){ xt.addClass('is-last-inline') }
+			if( n === app.places ){ 
+				xt.addClass('is-last-inline');
+				
+				/* Set height on first item by calc the height from first item */
+				var wXt = xt.css('width').replace('px','');
+				var ft = $('.desk-' + desk + '.is-multi.is-first-inline > .multi-' + app.id );
+				ft.css( 'width', (wXt * n ) + 15 + 'px' );
+			}
 		}
 	} else {
 		let xt = $( '.desk-' + nDesks + '.start-' + app.slots[j].start );
@@ -262,4 +264,64 @@ if( $('.selectable').length > 0 ){
 		}
 	});
 }
+}
+
+function setCommentsBg( event ){
+	const bgColor=setNeWcolor();
+	if ( event.comment_end_time != '00:00' &&  event.comment_start_time != '00:00' ){
+		let firstCell = $(document).find('.place.start-' + moment(event.comment_start).format('DDMM') + '-' + event.comment_start_time.replace(':','') );
+		firstCell.css('background-color', bgColor).addClass('hour-comment').addClass('hour-comment-first').addClass('comment-' + event.id_comment );
+		let lastCell = $(document).find('.place.start-' + moment(event.comment_start).format('DDMM') + '-' + event.comment_end_time.replace(':','') );
+		lastCell.css('background-color', bgColor).addClass('hour-comment').addClass('hour-comment-last').addClass('comment-' + event.id_comment );
+		// Set td
+		$('.hour-comment-first').parent().nextAll().each( function() {
+			if( $(this).children().first().next().hasClass('hour-comment-last') ){
+				return false;
+			} else {
+				$(this).children().nextAll().not('.is-surbook').css('background-color', bgColor).addClass('hour-comment').addClass('comment-' + event.id_comment );
+			}
+		});
+	}
+}
+
+function hourComment( obj, status ){
+var bgColor='#'+rgbToHex( obj.css('background-color')), 
+	cColor = contrast( bgColor ), 
+	commentSel = obj.attr('class').split(' '),
+	commentIdx = commentSel.length - 1
+	thecomment=$('#'+commentSel[commentIdx]) ;
+	if( status ){
+		/* Set Hover */
+		thecomment.popover("toggle");
+		thecomment.css('background-color', bgColor );
+		thecomment.children('p').css('color', cColor );
+
+	} else {
+		/* Exit Hover */
+		thecomment.css('background-color', 'rgb(233, 250, 0)' )
+		thecomment.children('p').css('color', '#000' );
+	}	
+}
+
+function slotChangeHighlight(){
+	var slotsChanged = sessionStorage.getItem('changedSlots'), slotStatus='', itemSelect='';
+	var aSlotsChanged = slotsChanged != null ? slotsChanged.split(',') : [];
+	if ( aSlotsChanged.length > 0 ){
+		aSlotsChanged.forEach( function( item, index, array) {
+			if ( index > 0 ){
+				if ( $(item).hasClass( slotClass )){
+					if( $(item).hasClass( '.isMulti' ) ){
+						slotClass += '-multi'
+					}
+					$(item).addClass( 'border-change-' + slotClass );
+				} else {
+					itemselect=$(item).parents('tr').children( 'td.'+slotClass );
+					itemselect.addClass('border-change-' + slotClass );
+				}
+			} else {
+				slotClass = item;
+			}
+		});
+	}
+	sessionStorage.clear();
 }
