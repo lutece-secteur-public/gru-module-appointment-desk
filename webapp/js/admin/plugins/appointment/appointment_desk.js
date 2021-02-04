@@ -267,12 +267,13 @@ if( $('.selectable').length > 0 ){
 }
 }
 
-function setCommentsBg( event ){
-	const bgColor=setNeWcolor();
+function setCommentsBg( event, currentDate, locale ){
+	moment.locale( locale );
+	const bgColor=setNeWcolor() + '80';
 	if ( event.comment_end_time != '00:00' &&  event.comment_start_time != '00:00' ){
-		let firstCell = $(document).find('.place.start-' + moment(event.comment_start).format('DDMM') + '-' + event.comment_start_time.replace(':','') );
+		let firstCell = $(document).find('.place.start-' + moment(currentDate).format('MMDD') + '-' + event.comment_start_time.replace(':','') );
 		firstCell.css('background-color', bgColor).addClass('hour-comment').addClass('hour-comment-first').addClass('comment-' + event.id_comment );
-		let lastCell = $(document).find('.place.start-' + moment(event.comment_start).format('DDMM') + '-' + event.comment_end_time.replace(':','') );
+		let lastCell = $(document).find('.place.start-' + moment(currentDate).format('MMDD') + '-' + event.comment_end_time.replace(':','') );
 		lastCell.css('background-color', bgColor).addClass('hour-comment hour-comment-last comment-' + event.id_comment).addClass('comment-' + event.id_comment );
 		// Set td
 		$('.hour-comment-first').parent().nextAll().each( function() {
@@ -290,17 +291,17 @@ var bgColor='#'+rgbToHex( obj.css('background-color')),
 	cColor = contrast( bgColor ), 
 	commentSel = obj.attr('class').split(' '),
 	commentIdx = commentSel.length - 1
-	thecomment=$('#'+commentSel[commentIdx]) ;
+	thecomment=$('#'+commentSel[commentIdx]);
 	if( status ){
 		/* Set Hover */
 		thecomment.popover("toggle");
 		thecomment.css('background-color', bgColor );
-		thecomment.children('p').css('color', cColor );
+		thecomment.find('p').css('color', cColor );
 
 	} else {
 		/* Exit Hover */
 		thecomment.css('background-color', 'rgb(233, 250, 0)' )
-		thecomment.children('p').css('color', '#000' );
+		thecomment.find('p').css('color', '#000' );
 	}	
 }
 
