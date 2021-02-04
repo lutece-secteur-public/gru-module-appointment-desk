@@ -51,12 +51,14 @@
 			<@table id='selectable' class='clearfix' >
 			<tr>
 				<th>
+				<#if activateEditMode>
 					<@button type='button' color='link' style='btn-link' class='open-desk' params=' data-toggle="modal"' buttonTargetId='#deskModal' title='#i18n{appointmentdesk.manage_appointmentdesks.label.addDesk}' hideTitle=[''] buttonNested=true >
 						<@iconStack class='fa-1x'>
 							<@icon style='desktop' class='fa-stack-2x' />
 							<@icon style='plus' class='fa-stack-1x' />
 						</@iconStack>
 					</@button>
+				</#if>
 				</th>
 				<#assign x=numb_desk>
 				<#list 1..x as seq >
@@ -132,6 +134,8 @@
 	</@modalBody>
 </@modal>
 
+
+<#if activateEditMode>
 <@modal id='slottoggle' size='sm'>
 	<@modalBody>
 	<div style="margin-left:25%">
@@ -197,7 +201,7 @@
 		</@tform>
 	</@modalBody>
 </@modal>
-
+</#if>
 <@getCommentModal 'commentModal' '#i18n{appointment.create_comment.pageTitle}' "comment" "startingValidityDate" "endingValidityDate" "idStartingTime" "idEndingTime" "doAddComment" idForm mailing_list />
 <@getCommentModal 'modify-comment' '#i18n{appointment.modify_comment.pageTitle}' "comment" "modifyStartingValidityDate" "modifyEndingValidityDate" "idModifyStartingTime" "idModifyEndingTime" "doModifyComment" idForm mailing_list />
 
@@ -246,6 +250,7 @@ $(function () {
 		});
 	});
 	
+	<#if activateEditMode>
 	// DESK ADD MODAL
 	$('#startingTime').datetimepicker({
 		format: 'HH:mm',
@@ -274,7 +279,7 @@ $(function () {
 		todayHighLight : true,
 		autoclose : true
 	});  
-	
+	</#if>
 	$('.comments').each( function(){
 		moment.locale("${language}");
 		var json = { "container": "body", "placement" : "bottom", "html" : true, "trigger" : "hover" };
@@ -295,7 +300,6 @@ $(function () {
 		// Set comments backgrounds
 		var cDay=$('#day').val()
 		setCommentsBg( event, cDay, '${language}' );
-		
 	});
 
 	// Manage Hour Comments highlight 
@@ -320,7 +324,6 @@ const appointments = [<#list list_appointment?sort_by('appointmentTakenSqlDate')
 {"id":"${app.idAppointment}","lastName" : "${app.user.lastName}","firstName" : "${app.user.firstName}","places": ${app.nbPlaces},"slots":[<#list app.slot?sort_by('startingDateTime') as slot>{"id" : "${slot.idSlot}", "start" : "${slot.startingDateTime!?datetime.iso?string["ddMM-HHmm"]}", },</#list>],},
 </#compress>
 </#list>];
-
 
 /* Begin set RDV 		*/
 const nDesks=${numb_desk+1}, isMultiSlot=${appointmentForm.isMultislotAppointment?c}, appUrlDetail='jsp/admin/plugins/appointment/ManageAppointments.jsp?view=viewAppointment&id_form=${idForm!}&id_appointment=';

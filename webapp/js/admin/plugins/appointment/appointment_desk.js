@@ -7,7 +7,6 @@ function setDayTabs(){
 		var tabCtx=ctx[2].split('='),tab=tabCtx[1] ;
 		var tabGroup='[data-menu=\'' + tab + '\']';
 		$(tabGroup).toggle();
-		if( tab=='app') $('.open-desk').remove();
 		$('input[name="context"]').val( tab );
 	}
 }
