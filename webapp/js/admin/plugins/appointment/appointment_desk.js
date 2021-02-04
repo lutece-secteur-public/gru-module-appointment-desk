@@ -278,7 +278,7 @@ function setCommentsBg( event, currentDate, locale ){
 		lastHeadCell.append('<i class="fa fa-comment comment-' + event.id_comment + '" style="color:' + bgColor + '"></i>').addClass('hour-comment').addClass('hour-comment-last').addClass('comment-' + event.id_comment );
 		
 		// Set td
-		$('.hour-comment-first').parent().nextAll().each( function() {
+		$('.hour-comment-first.comment-' + event.id_comment ).parent().nextAll().each( function() {
 			if( $(this).children().first().hasClass('hour-comment-last comment-' + event.id_comment) ){
 				return false;
 			} else {
