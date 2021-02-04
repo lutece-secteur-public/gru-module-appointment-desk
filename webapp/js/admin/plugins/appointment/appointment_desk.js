@@ -4,10 +4,11 @@
 function setDayTabs(){
 	var ctx=window.location.search.split('&');
 	if( ctx.length==3 ){
-		var tabCtx=ctx[2].split('=');
-		var tabGroup='[data-menu=\'' + tabCtx[1] + '\']';
+		var tabCtx=ctx[2].split('='),tab=tabCtx[1] ;
+		var tabGroup='[data-menu=\'' + tab + '\']';
 		$(tabGroup).toggle();
-		$('input[name="context"]').val( tabCtx[1] );
+		if( tab=='app') $('.open-desk').remove();
+		$('input[name="context"]').val( tab );
 	}
 }
 
@@ -272,10 +273,10 @@ function setCommentsBg( event ){
 		let firstCell = $(document).find('.place.start-' + moment(event.comment_start).format('DDMM') + '-' + event.comment_start_time.replace(':','') );
 		firstCell.css('background-color', bgColor).addClass('hour-comment').addClass('hour-comment-first').addClass('comment-' + event.id_comment );
 		let lastCell = $(document).find('.place.start-' + moment(event.comment_start).format('DDMM') + '-' + event.comment_end_time.replace(':','') );
-		lastCell.css('background-color', bgColor).addClass('hour-comment').addClass('hour-comment-last').addClass('comment-' + event.id_comment );
+		lastCell.css('background-color', bgColor).addClass('hour-comment hour-comment-last comment-' + event.id_comment).addClass('comment-' + event.id_comment );
 		// Set td
 		$('.hour-comment-first').parent().nextAll().each( function() {
-			if( $(this).children().first().next().hasClass('hour-comment-last') ){
+			if( $(this).children().first().next().hasClass('hour-comment-last comment-' + event.id_comment) ){
 				return false;
 			} else {
 				$(this).children().nextAll().not('.is-surbook').css('background-color', bgColor).addClass('hour-comment').addClass('comment-' + event.id_comment );
