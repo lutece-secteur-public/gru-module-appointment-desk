@@ -100,7 +100,7 @@
 			<#assign idx=1>
 			<#list list_slot?sort_by('startingDateTime') as slot>
 				<tr <#if idx=1>class="first"</#if>>
-					<td data-selectable="row">${slot.startingTime!} </td>	
+					<td data-selectable="row" data-head-start="${slot.startingDateTime?datetime.iso?string["HH:mm"]}">${slot.startingTime!} </td>	
 					<#setting datetime_format="iso">
 					<#list 1..x as seq >
 						<td class="${strClass!} place desk-${seq} slot-${slot.idSlot!} start-${slot.startingDateTime?datetime.iso?string["ddMM-HHmm"]} selectable <#if slot.isOpen && ( seq - slot.maxCapacity lte 0) >slot-open<#else>slot-close</#if>" data-start="${slot.startingDateTime!?datetime.iso?string["HHmm"]}" data-end="${slot.endingDateTime!?datetime.iso?string["HHmm"]}" data-marker=".desk-${seq}.slot-${slot.idSlot!}.start-${slot.startingDateTime?datetime.iso?string["ddMM-HHmm"]}" data-slot="{'idSlot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':'${slot.idForm!1}'}" ></td>	
@@ -134,8 +134,6 @@
 	</@modalBody>
 </@modal>
 
-
-<#if activateEditMode>
 <@modal id='slottoggle' size='sm'>
 	<@modalBody>
 	<div style="margin-left:25%">
@@ -148,7 +146,7 @@
 	</div>
 	</@modalBody>
 </@modal>
-
+<#if activateEditMode>
 <@modal id='deskModal'>
 	<@modalHeader modalTitle='#i18n{module.appointment.desk.increment.defaultTitle}' />
 	<@modalBody>
@@ -249,7 +247,6 @@ $(function () {
 		$('#loader').hide();
 		});
 	});
-	
 	<#if activateEditMode>
 	// DESK ADD MODAL
 	$('#startingTime').datetimepicker({
@@ -300,10 +297,11 @@ $(function () {
 		// Set comments backgrounds
 		var cDay=$('#day').val()
 		setCommentsBg( event, cDay, '${language}' );
+		
 	});
 
 	// Manage Hour Comments highlight 
-	$('.hour-comment').hover( function(){
+	$('.fa-comment').hover( function(){
 		hourComment( $(this), true )
 		return false;
 	}, function(){
@@ -324,6 +322,7 @@ const appointments = [<#list list_appointment?sort_by('appointmentTakenSqlDate')
 {"id":"${app.idAppointment}","lastName" : "${app.user.lastName}","firstName" : "${app.user.firstName}","places": ${app.nbPlaces},"slots":[<#list app.slot?sort_by('startingDateTime') as slot>{"id" : "${slot.idSlot}", "start" : "${slot.startingDateTime!?datetime.iso?string["ddMM-HHmm"]}", },</#list>],},
 </#compress>
 </#list>];
+
 
 /* Begin set RDV 		*/
 const nDesks=${numb_desk+1}, isMultiSlot=${appointmentForm.isMultislotAppointment?c}, appUrlDetail='jsp/admin/plugins/appointment/ManageAppointments.jsp?view=viewAppointment&id_form=${idForm!}&id_appointment=';

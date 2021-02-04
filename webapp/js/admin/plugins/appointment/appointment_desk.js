@@ -268,25 +268,30 @@ if( $('.selectable').length > 0 ){
 
 function setCommentsBg( event, currentDate, locale ){
 	moment.locale( locale );
-	const bgColor=setNeWcolor() + '80';
+	const bgColor=setNeWcolor();
 	if ( event.comment_end_time != '00:00' &&  event.comment_start_time != '00:00' ){
-		let firstCell = $(document).find('.place.start-' + moment(currentDate).format('MMDD') + '-' + event.comment_start_time.replace(':','') );
-		firstCell.css('background-color', bgColor).addClass('hour-comment').addClass('hour-comment-first').addClass('comment-' + event.id_comment );
-		let lastCell = $(document).find('.place.start-' + moment(currentDate).format('MMDD') + '-' + event.comment_end_time.replace(':','') );
-		lastCell.css('background-color', bgColor).addClass('hour-comment hour-comment-last comment-' + event.id_comment).addClass('comment-' + event.id_comment );
+		/* Set Bullet on row head */
+		const cellHeadFirst='[data-head-start="' + event.comment_start_time + '"]', cellHeadLast='[data-head-start="' + event.comment_end_time + '"]';
+		const firstHeadCell = $(document).find( cellHeadFirst );
+		firstHeadCell.append('<i class="fa fa-comment comment-' + event.id_comment + '" style="color:' + bgColor + '"></i>').addClass('hour-comment').addClass('hour-comment-first').addClass('comment-' + event.id_comment );
+		const lastHeadCell = $(document).find( cellHeadLast );
+		lastHeadCell.append('<i class="fa fa-comment comment-' + event.id_comment + '" style="color:' + bgColor + '"></i>').addClass('hour-comment').addClass('hour-comment-last').addClass('comment-' + event.id_comment );
+		
 		// Set td
 		$('.hour-comment-first').parent().nextAll().each( function() {
-			if( $(this).children().first().next().hasClass('hour-comment-last comment-' + event.id_comment) ){
+			if( $(this).children().first().hasClass('hour-comment-last comment-' + event.id_comment) ){
 				return false;
 			} else {
-				$(this).children().nextAll().not('.is-surbook').css('background-color', bgColor).addClass('hour-comment').addClass('comment-' + event.id_comment );
+				if( $(this).children().first().find('i').not('.comment-' + event.id_comment ) ){
+					$(this).children().first().append('<i class="fa fa-comment comment-' + event.id_comment + '" style="margin-left:4px;color:' + bgColor + '"></i>').addClass('hour-comment hour-comment-first comment-' + event.id_comment );
+				}
 			}
 		});
 	}
 }
 
 function hourComment( obj, status ){
-var bgColor='#'+rgbToHex( obj.css('background-color')), 
+var bgColor='#'+rgbToHex( obj.css('color')), 
 	cColor = contrast( bgColor ), 
 	commentSel = obj.attr('class').split(' '),
 	commentIdx = commentSel.length - 1
@@ -296,11 +301,11 @@ var bgColor='#'+rgbToHex( obj.css('background-color')),
 		thecomment.popover("toggle");
 		thecomment.css('background-color', bgColor );
 		thecomment.find('p').css('color', cColor );
-
 	} else {
 		/* Exit Hover */
 		thecomment.css('background-color', 'rgb(233, 250, 0)' )
 		thecomment.find('p').css('color', '#000' );
+		thecomment.popover("toggle");
 	}	
 }
 
