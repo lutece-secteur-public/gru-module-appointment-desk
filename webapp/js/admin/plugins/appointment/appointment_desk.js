@@ -87,7 +87,7 @@ function setMultiRdv( app, desk ){
 	/* Set height on first item by calc the height from first item */
 	var wSt = st.css('width').replace('px','');
 	var ft = $('.desk-' + desk + '.is-multi.multi-' + app.id + '.is-first > .multi-' + app.id );
-	ft.css('height', `${(40 * n) - 15}px` ).css('width', + wSt - 8 + 'px');
+	ft.css('height', `${(60 * n) - 10}px` ).css('width', + wSt - 8 + 'px');
 }
 
 /* function setUniRdv : Multi RDV for non multi Slot Form */

@@ -61,21 +61,25 @@
 #selectable thead {
 	display: block;
 	width: 96vw;	
-	height: 5vh;
+	height: 10vh;
+}
+
+#selectable thead tr{
+	height: 10vh;
 }
 
 #selectable tbody {
 	display: block;
 	height: 50vh;
 	position: relative;
-	top: 60px;
+	top: 10vh;
 	overflow-x: hidden;
     overflow-y: auto;	
 }
 
 #selectable tr {
 	width: 96vw;
-	height: 30px;
+	height: 50px;
 	display: inline-table;
 	table-layout: fixed;
 }
@@ -93,11 +97,10 @@
 	position: relative;
 	border: 1px solid #aaa;
 	margin: 0;
-	height: 30px ;
+	height: 50px ;
 }
  
-#selectable th  {    
-	height: 40px ;
+#selectable th {   
 	font-weight: normal;
 	vertical-align: middle;
 	font-weight: 700;
