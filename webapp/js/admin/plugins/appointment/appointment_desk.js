@@ -27,15 +27,14 @@ function setDayView( appointments ){
 function formatSurbook( ){
 	var st = $('.desk-' + nDesks + '.is-surbook');	
 	st.each(function(){
-		var nLength = $(this).children('span').length, nLeft=0;
+		var nLength=$(this).find('span').length, nLeft=5;
+		var nW = nLength > 1 ? ( 130 / nLength ) -.15 + '%' : '80%';
 		if( nLength > 0 ){
-			var nW = ( 80 / nLength ) + '%';
 			$(this).children('span').each(function(){
-				$(this).css('width', nW  )
-				if( nLeft > 0 ){ $(this).css('left', nLeft + 'px' )} ;
-				nLeft += 30
+				$(this).css( 'width', nW  ).css( 'left', nLeft + 'px' );
+				nLeft +=45;
 			});
-		}
+		} 
 	});
 }
 
@@ -87,20 +86,21 @@ function setMultiRdv( app, desk ){
 	/* Set height on first item by calc the height from first item */
 	var wSt = st.css('width').replace('px','');
 	var ft = $('.desk-' + desk + '.is-multi.multi-' + app.id + '.is-first > .multi-' + app.id );
-	ft.css('height', `${(60 * n) - 10}px` ).css('width', + wSt - 8 + 'px');
+	ft.css('height', `${(60 * n) - 15}px` ).css('width', + wSt - 8 + 'px');
 }
 
 /* function setUniRdv : Multi RDV for non multi Slot Form */
 function setUniRdv( app, desk ){
 	/* Set extra multi values */
-	var info=setInfo( app ), multiDesk=desk;	
+	var info=setInfo( app ), multiDesk=desk, fst='';	
 	if ( checkUniRdv( app.places, app.slots[j].start ) ){
 		for ( n=1; n <= app.places; n++ ){
-			//multiDesk = checkUniRdv( app.places, app.slots[j].start ) ? nDesks : multiDesk;
+			// 
 			let xt = $( '.desk-' + multiDesk + '.start-' + app.slots[j].start );
 			if ( ( xt.html().trim().length === 0  ) && ( !xt.hasClass( 'is-multi' ) ) && ( !xt.hasClass( 'slot-close' ) ) ){
 				if( n===1){
 					$( xt ).html( info ).addClass('is-first-inline');
+					fst=xt;
 				}
 				$( xt ).addClass( 'is-multi' );
 			} else {
@@ -110,12 +110,11 @@ function setUniRdv( app, desk ){
 			}
 			multiDesk++;
 			if( n === app.places ){ 
-				xt.addClass('is-last-inline');
-				
-				/* Set height on first item by calc the height from first item */
-				var wXt = xt.css('width').replace('px','');
-				var ft = $('.desk-' + desk + '.is-multi.is-first-inline > .multi-' + app.id );
-				ft.css( 'width', (wXt * n ) + 15 + 'px' );
+				xt.addClass( 'is-last-inline' );
+				/* Set width on first item by calc the width from first item */
+				var wXt = parseInt( xt.css('width').replace( 'px', '' ) ) + 3;
+				var ft = $('.is-multi.is-first-inline > .multi-' + app.id );
+				ft.css( 'width', ( wXt * n ) + 'px' );
 			}
 		}
 	} else {
