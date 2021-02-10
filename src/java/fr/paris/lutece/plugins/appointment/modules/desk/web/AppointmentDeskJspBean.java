@@ -46,6 +46,7 @@ import fr.paris.lutece.plugins.appointment.modules.desk.util.IncrementSlot;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.IncrementingType;
 import fr.paris.lutece.plugins.appointment.service.AppointmentResourceIdService;
 import fr.paris.lutece.plugins.appointment.service.AppointmentService;
+import fr.paris.lutece.plugins.appointment.service.AppointmentUtilities;
 import fr.paris.lutece.plugins.appointment.service.CommentService;
 import fr.paris.lutece.plugins.appointment.service.FormService;
 import fr.paris.lutece.plugins.appointment.service.SlotService;
@@ -162,8 +163,9 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         String strDayDate = request.getParameter( PARAMETER_DATE_DAY );
         boolean activateEditMode = true;
         LocalDate dateDay = null;
+        User user= getUser( );
         if ( !RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, strIdForm, AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM,
-                (User) getUser( ) ) )
+        		user) )
         {
         	activateEditMode = false;
         }
@@ -212,7 +214,11 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         model.put( MARK_MACRO_LOCALE, getLocale( ) );
         model.put( MARK_LIST_TYPE, getListTypes( ));
         model.put( MARK_MAILING_LIST, AdminMailingListService.getMailingLists( getUser( )  ));
-
+        model.put( AppointmentUtilities.MARK_PERMISSION_ADD_COMMENT, String.valueOf( RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, strIdForm,
+                AppointmentResourceIdService.PERMISSION_ADD_COMMENT_FORM, user ) ));
+        model.put( AppointmentUtilities.MARK_PERMISSION_MODERATE_COMMENT, String.valueOf( RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, strIdForm,
+                AppointmentResourceIdService.PERMISSION_MODERATE_COMMENT_FORM, user ) ));
+        model.put( AppointmentUtilities.MARK_PERMISSION_ACCESS_CODE , user.getAccessCode( ) );
 
         return getPage( PROPERTY_PAGE_TITLE_MANAGE_APPOINTMENTDESKS, TEMPLATE_MANAGE_APPOINTMENTDESKS, model );
     }
