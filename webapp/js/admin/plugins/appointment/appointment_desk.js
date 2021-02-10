@@ -267,7 +267,8 @@ if( $('.selectable').length > 0 ){
 
 function setCommentsBg( event, currentDate, locale ){
 	moment.locale( locale );
-	const bgColor=setNeWcolor();
+	// const bgColor=setNeWcolor();
+	const bgColor='rgb(233, 250, 0 )';
 	if ( event.comment_end_time != '00:00' &&  event.comment_start_time != '00:00' ){
 		/* Set Bullet on row head */
 		const cellHeadFirst='[data-head-start="' + event.comment_start_time + '"]', cellHeadLast='[data-head-start="' + event.comment_end_time + '"]';
@@ -290,11 +291,14 @@ function setCommentsBg( event, currentDate, locale ){
 }
 
 function hourComment( obj, status ){
-var bgColor='#'+rgbToHex( obj.css('color')), 
-	cColor = contrast( bgColor ), 
+// var bgColor='#'+rgbToHex( obj.css('color')), 
+// 	cColor = contrast( bgColor ), 
+var bgColor='orange', 
+	cColor = 'white', 
 	commentSel = obj.attr('class').split(' '),
 	commentIdx = commentSel.length - 1
 	thecomment=$('#'+commentSel[commentIdx]);
+
 	if( status ){
 		/* Set Hover */
 		thecomment.popover("toggle");
