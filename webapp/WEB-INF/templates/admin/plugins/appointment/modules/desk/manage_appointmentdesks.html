@@ -68,18 +68,20 @@
 			</tr>
 			<tr>
 				<td>
-					<@button id='toggle-add-comment' style='none' class='btn btn-link' title='#i18n{module.appointment.desk.label.addComment}' hideTitle=[''] params=' data-toggle="modal" data-target="#commentModal" ' buttonNested=true>
-						<@iconStack class='fa-sm'>
-							<@icon prefix='far fa-' style='comment' class='fa-stack-2x' />
-							<@icon style='plus' class='fa-stack-1x' />
-						</@iconStack>
-					</@button>								
+					<#if permission_add_comment?boolean>
+						<@button id='toggle-add-comment' style='none' class='btn btn-link' title='#i18n{module.appointment.desk.label.addComment}' hideTitle=[''] params=' data-toggle="modal" data-target="#commentModal" ' buttonNested=true>
+							<@iconStack class='fa-sm'>
+								<@icon prefix='far fa-' style='comment' class='fa-stack-2x' />
+								<@icon style='plus' class='fa-stack-1x' />
+							</@iconStack>
+						</@button>	
+					</#if>							
 				</td>
 				<td colspan="${x}">
 				<#if list_comments?size gt 0>
 					<#list list_comments as comment>
 						<#assign comment_title>${comment.comment?replace('\n', '')?replace('\r', '')?replace('\rn', '')?replace('\'', '&apos;')?replace('\"', '\\"')}</#assign>
-						<a class="fc-day-grid-event fc-h-event fc-event fc-start fc-end comments" id="comment-${comment.id!}" data-json="{&quot;id_comment&quot;:&quot;${comment.id}&quot;, &quot;comment_text&quot;:&quot;${comment_title!}&quot;, &quot;comment_start&quot;:&quot;${comment.startingValidityDate!}&quot;, &quot;comment_start_time&quot;:&quot;${comment.startingValidityTime!}&quot;, &quot;comment_end&quot;:&quot;${comment.endingValidityDate!}&quot;, &quot;comment_end_time&quot;:&quot;${comment.endingValidityTime!}&quot;, &quot;comment_creation_user&quot;:&quot;${comment.creatorUserName!}&quot;, &quot;comment_creation_date&quot;:&quot;${comment.creationDate?date.xs!''}&quot;}" style="cursor: pointer;">
+						<a class="fc-day-grid-event fc-h-event fc-event fc-start fc-end comments" data-author="${comment.creatorUserName!}" id="comment-${comment.id!}" data-json="{&quot;id_comment&quot;:&quot;${comment.id}&quot;, &quot;comment_text&quot;:&quot;${comment_title!}&quot;, &quot;comment_start&quot;:&quot;${comment.startingValidityDate!}&quot;, &quot;comment_start_time&quot;:&quot;${comment.startingValidityTime!}&quot;, &quot;comment_end&quot;:&quot;${comment.endingValidityDate!}&quot;, &quot;comment_end_time&quot;:&quot;${comment.endingValidityTime!}&quot;, &quot;comment_creation_user&quot;:&quot;${comment.creatorUserName!}&quot;, &quot;comment_creation_date&quot;:&quot;${comment.creationDate?date.xs!''}&quot;}" style="cursor: pointer;">
 							<div class="fc-content"> 
 								<span class="fc-title">
 									<p>
@@ -277,6 +279,7 @@ $(function () {
 		autoclose : true
 	});  
 	</#if>
+
 	$('.comments').each( function(){
 		moment.locale("${language}");
 		var json = { "container": "body", "placement" : "bottom", "html" : true, "trigger" : "hover" };
@@ -308,9 +311,13 @@ $(function () {
 		hourComment( $(this), false )
 	});
 
+	<#if permission_moderate_comment?boolean>
 	$('.comments').click(function(e) {
-		<@commentModal update=true />
+		if( $(this).data('author') === '${permission_access_code}' ){
+			<@commentModal update=true />
+		}
 	});
+	</#if>
 
 	/* Show udpates by highlighting  */
 	slotChangeHighlight()
