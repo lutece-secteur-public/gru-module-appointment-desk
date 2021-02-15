@@ -197,7 +197,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         filter.setIdForm( nIdForm );
         filter.setStartingDateOfSearch( java.sql.Date.valueOf( dateDay ) );
         filter.setEndingDateOfSearch( java.sql.Date.valueOf( dateDay ) );
-        
+        filter.setStatus( 1 );
         
 		List<Appointment> listAppt = AppointmentService.findListAppointmentsByFilter(filter);
 		_nMaxCapacity= appointmentDesk;
