@@ -97,7 +97,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
 
     // Parameters
     private static final String PARAMETER_ID_FORM = "id_form";
-
+    private static final String PARAMETER_CONTEXT = "context";
     private static final String PARAMETER_NUMB_DESK = "numb_desk";
     private static final String PARAMETER_DATE_DAY = "day";
     private static final String PARAMETER_DATA = "data";
@@ -123,7 +123,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String MARK_FORM = "appointmentForm";
     private static final String MARK_ACTIVATE_EDIT_MODE= "activateEditMode";
     private static final String MARK_MAILING_LIST = "mailing_list";
-    
+    private static final String MARK_CONTEXT = "context";
     
     // Properties
 
@@ -145,7 +145,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String PROPERTY_MESSAGE_ERROR_ACCESS_DENIED = "module.appointment.desk.error.access.denied";
     // Session variable to store working values
     private int _nMaxCapacity;
-
+    private String _strContext;
 
 
     /**
@@ -161,6 +161,8 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     	String strIdForm = request.getParameter( PARAMETER_ID_FORM );
         int nIdForm = Integer.parseInt( strIdForm );
         String strDayDate = request.getParameter( PARAMETER_DATE_DAY );
+        String strContext= request.getParameter( PARAMETER_CONTEXT );
+        _strContext= ( StringUtils.isNotEmpty( strContext ) )? strContext : _strContext;
         boolean activateEditMode = true;
         LocalDate dateDay = null;
         User user= getUser( );
@@ -203,6 +205,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
 		_nMaxCapacity= appointmentDesk;
 		
         model.put( MARK_ACTIVATE_EDIT_MODE, activateEditMode);
+        model.put( MARK_CONTEXT, _strContext );
         model.put( MARK_LIST_COMMENTS, listComment);
         model.put( PARAMETER_NUMB_DESK, appointmentDesk );
         model.put( MARK_LIST_SLOT, listSlot);
