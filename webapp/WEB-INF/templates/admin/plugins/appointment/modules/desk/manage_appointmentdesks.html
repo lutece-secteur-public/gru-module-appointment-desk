@@ -3,15 +3,17 @@
 <link rel="stylesheet" href="css/admin/plugins/appointment/fullcalendar.custom.css" >
 <link rel='stylesheet' href="css/plugins/appointment/bootstrap-datetimepicker.css">
 <link rel="stylesheet" href="css/admin/plugins/appointment/appointment_desk.css">
+
 <#if list_comments?size gt 3>
 <style>
-#selectable thead { *
+#selectable thead { 
 	height: ${list_comments?size*3}vh;
-	margin-bottom: ${(list_comments?size*3)-(list_comments?size/2)?floor+1}vh;
+	/*	margin-bottom: ${(list_comments?size*3)-(list_comments?size/2)?floor+1}vh; 	*/
 }
 </style>
 </#if>
-<@appointmentTabs tab='day' form=appointmentForm context='desk'>
+
+<@appointmentTabs tab='day' form=appointmentForm context=context>
 	<div id="calendar" class="fc ui-widget fc-ltr">
 		<div class="fc-toolbar fc-header-toolbar row">
 			<div class="fc-left">
@@ -55,7 +57,7 @@
 		<div class="fc-clear"></div>
 		<div class="fc-view-container">
 			<div class="fc-view fc-agendaWeek-view fc-agenda-view">
-			<@table id='selectable' class='clearfix' >
+			<@table id='selectable' class='clearfix'>
 			<tr>
 				<th>
 				<#if activateEditMode>
@@ -227,10 +229,6 @@
 <script src="js/admin/plugins/appointment/appointment_desk.js"></script>
 <script>
 $(function () {
-	/* Tab */
-	$(".nav-tabs > li").toggle();
-	setDayTabs();
-
 	<#if activateEditMode>
 		/* Add selectable function to table cell */
 		setSelection();

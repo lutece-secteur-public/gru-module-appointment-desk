@@ -1,17 +1,4 @@
 /********************************/
-/*  Appointment Day Tabs        */
-/********************************/
-function setDayTabs(){
-	var ctx=window.location.search.split('&');
-	if( ctx.length==3 ){
-		var tabCtx=ctx[2].split('='),tab=tabCtx[1] ;
-		var tabGroup='[data-menu=\'' + tab + '\']';
-		$(tabGroup).toggle();
-		$('input[name="context"]').val( tab );
-	}
-}
-
-/********************************/
 /*  Appointment Desk Functions  */
 /********************************/
 /* Add RDV in day view 			*/
@@ -332,5 +319,5 @@ function slotChangeHighlight(){
 			}
 		});
 	}
-	sessionStorage.clear();
+	sessionStorage.removeItem('changedSlots');
 }
