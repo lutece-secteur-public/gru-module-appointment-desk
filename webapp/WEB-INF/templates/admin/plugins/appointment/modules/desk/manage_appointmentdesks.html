@@ -90,7 +90,7 @@
 				<#if list_comments?size gt 0>
 					<#list list_comments as comment>
 						<#assign comment_title>${comment.comment?replace('\n', '')?replace('\r', '')?replace('\rn', '')?replace('\'', '&apos;')?replace('\"', '\\"')}</#assign>
-						<a class="fc-day-grid-event fc-h-event fc-event fc-start fc-end comments" data-author="${comment.creatorUserName!}" id="comment-${comment.id!}" data-json="{&quot;id_comment&quot;:&quot;${comment.id}&quot;, &quot;comment_text&quot;:&quot;${comment_title!}&quot;, &quot;comment_start&quot;:&quot;${comment.startingValidityDate!}&quot;, &quot;comment_start_time&quot;:&quot;${comment.startingValidityTime!}&quot;, &quot;comment_end&quot;:&quot;${comment.endingValidityDate!}&quot;, &quot;comment_end_time&quot;:&quot;${comment.endingValidityTime!}&quot;, &quot;comment_creation_user&quot;:&quot;${comment.creatorUserName!}&quot;, &quot;comment_creation_date&quot;:&quot;${comment.creationDate?date.xs!''}&quot;}" style="cursor: pointer;">
+						<a class="fc-day-grid-event fc-h-event fc-event fc-start fc-end comments" data-author="${comment.creatorUserName!}" id="comment-${comment.id!}" data-json="{&quot;id_comment&quot;:&quot;${comment.id}&quot;, &quot;comment_text&quot;:&quot;${comment_title!}&quot;, &quot;start&quot;:&quot;${comment.startingValidityDate!}&quot;, &quot;comment_start&quot;:&quot;${comment.startingValidityDate!}&quot;, &quot;comment_start_time&quot;:&quot;${comment.startingValidityTime!}&quot;, &quot;start_time&quot;:&quot;${comment.startingValidityTime!}&quot;, &quot;comment_end&quot;:&quot;${comment.endingValidityDate!}&quot;, &quot;validity_end&quot;:&quot;${comment.endingValidityDate!}&quot;, &quot;comment_end_time&quot;:&quot;${comment.endingValidityTime!}&quot;, &quot;end_time&quot;:&quot;${comment.endingValidityTime!}&quot;, &quot;comment_creation_user&quot;:&quot;${comment.creatorUserName!}&quot;, &quot;comment_creation_date&quot;:&quot;${comment.creationDate?date.xs!''}&quot;}" style="cursor: pointer;">
 							<div class="fc-content"> 
 								<span class="fc-title">
 									<p>
@@ -291,14 +291,8 @@ $(function () {
 		var json = { "container": "body", "placement" : "bottom", "html" : true, "trigger" : "hover" };
 		var event = JSON.parse($(this).attr( 'data-json')), labelEventDate='';
 		
-		if ( event.validity_end == null || event.validity_end == undefined ){
-			labelEventDate='Le ' + moment(event.comment_start).format('ddd DD/MM');
-		} else {
-			labelEventDate = 'Du ' + moment(event.comment_start).format('ddd DD/MM') + ' ' + event.comment_start_time + ' au '+ moment(event.comment_end_date).format('ddd DD/MM') + ' ' + event.comment_end_time;
-		}
-		if ( event.comment_end_time != '00:00' &&  event.comment_start_time != '00:00' ){
-			labelEventDate = '[' + event.comment_end_time + ' / ' + event.comment_start_time + '] ' + labelEventDate;
-		}
+		/* Add comment render */
+		labelEventDate=setLabelComment( event );
 
 		json.content = '<p>' + labelEventDate +'</p><p>Créé par <em>' + event.comment_creation_user + '</em> le <date>' + event.comment_creation_date + '</date><hr>'+ event.comment_text + '</p>';
 		$(this).popover( json );
