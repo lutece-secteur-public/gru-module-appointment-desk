@@ -94,10 +94,10 @@
 							<div class="fc-content"> 
 								<span class="fc-title">
 									<p>
-										<#if ( comment.startingValidityTime?? && comment.startingValidityTime != '00:00' && comment.endingValidityTime?? &&comment.endingValidityTime != '00:00' )>
+									<#if ( comment.startingValidityTime?? && comment.startingValidityTime != '00:00' && comment.endingValidityTime?? &&comment.endingValidityTime != '00:00' )>
 										${comment.startingValidityTime!}/${comment.endingValidityTime!} 
-										</#if>
-										${comment_title!?remove_beginning('<p>')?remove_ending('</p>')}
+									</#if>
+									${comment_title!?remove_beginning('<p>')?remove_ending('</p>')}
 									</p>
 								</span>
 							</div>
