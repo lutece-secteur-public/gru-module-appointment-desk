@@ -212,6 +212,7 @@
 	</@modalBody>
 </@modal>
 </#if>
+
 <@getCommentModal 'commentModal' '#i18n{appointment.create_comment.pageTitle}' "comment" "startingValidityDate" "endingValidityDate" "idStartingTime" "idEndingTime" "doAddComment" idForm mailing_list />
 <@getCommentModal 'modify-comment' '#i18n{appointment.modify_comment.pageTitle}' "comment" "modifyStartingValidityDate" "modifyEndingValidityDate" "idModifyStartingTime" "idModifyEndingTime" "doModifyComment" idForm mailing_list />
 
@@ -311,13 +312,12 @@ $(function () {
 		hourComment( $(this), false )
 	});
 
-	<#if permission_moderate_comment?boolean>
+	var isCommentModerator=${permission_moderate_comment};
 	$('.comments').click(function(e) {
-		if( $(this).data('author') === '${permission_access_code}' ){
+		if( $(this).data('author') === '${permission_access_code}' || isCommentModerator ){
 			<@commentModal update=true />
 		}
 	});
-	</#if>
 
 	/* Show udpates by highlighting  */
 	slotChangeHighlight()
