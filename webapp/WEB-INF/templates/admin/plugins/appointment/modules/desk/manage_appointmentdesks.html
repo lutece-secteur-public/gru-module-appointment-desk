@@ -8,7 +8,6 @@
 <style>
 #selectable thead { 
 	height: ${list_comments?size*3}vh;
-	/*	margin-bottom: ${(list_comments?size*3)-(list_comments?size/2)?floor+1}vh; 	*/
 }
 </style>
 </#if>
@@ -89,7 +88,7 @@
 				<td colspan="${x}">
 				<#if list_comments?size gt 0>
 					<#list list_comments as comment>
-						<#assign comment_title>${comment.comment?replace('\n', '')?replace('\r', '')?replace('\rn', '')?replace('\'', '&apos;')?replace('\"', '\\"')}</#assign>
+						<#assign comment_title>${comment.comment?replace('\n', '')?replace('\r', '')?replace('\rn', '')}</#assign>
 						<a class="fc-day-grid-event fc-h-event fc-event fc-start fc-end comments" data-author="${comment.creatorUserName!}" id="comment-${comment.id!}" data-json="{&quot;id_comment&quot;:&quot;${comment.id}&quot;, &quot;comment_text&quot;:&quot;${comment_title!}&quot;, &quot;start&quot;:&quot;${comment.startingValidityDate!}&quot;, &quot;comment_start&quot;:&quot;${comment.startingValidityDate!}&quot;, &quot;comment_start_time&quot;:&quot;${comment.startingValidityTime!}&quot;, &quot;start_time&quot;:&quot;${comment.startingValidityTime!}&quot;, &quot;comment_end&quot;:&quot;${comment.endingValidityDate!}&quot;, &quot;validity_end&quot;:&quot;${comment.endingValidityDate!}&quot;, &quot;comment_end_time&quot;:&quot;${comment.endingValidityTime!}&quot;, &quot;end_time&quot;:&quot;${comment.endingValidityTime!}&quot;, &quot;comment_creation_user&quot;:&quot;${comment.creatorUserName!}&quot;, &quot;comment_creation_date&quot;:&quot;${comment.creationDate?date.xs!''}&quot;}" style="cursor: pointer;">
 							<div class="fc-content"> 
 								<span class="fc-title">
