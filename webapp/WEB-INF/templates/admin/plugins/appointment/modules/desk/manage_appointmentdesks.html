@@ -95,7 +95,7 @@
 						<#compress>
 							<#assign comment_title>${comment.comment?replace('\n', '')?replace('\r', '')?replace('\rn', '')}</#assign>
 						</#compress>
-						<a class="fc-day-grid-event fc-h-event fc-event fc-start fc-end comments${comment_class!}" data-author="${comment.creatorUserName!}" id="comment-C${comment.id!}" data-json='{"id_comment":"C${comment.id}", "comment_text": "${comment_title!}", "start":"${comment.startingValidityDate!}", "comment_start":"${comment.startingValidityDate!}", "comment_start_time":"${comment.startingValidityTime!}", "start_time":"${comment.startingValidityTime!}", "comment_end":"${comment.endingValidityDate!}", "validity_end":"${comment.endingValidityDate!}", "comment_end_time":"${comment.endingValidityTime!}", "end_time":"${comment.endingValidityTime!}", "comment_creation_user":"${comment.creatorUserName!}", "comment_creation_date":"${comment.creationDate?date.xs!''}"}' style="cursor: pointer;">
+						<a class="fc-day-grid-event fc-h-event fc-event fc-start fc-end comments${comment_class!}" data-author="${comment.creatorUserName!}" id="comment-C${comment.id!}" data-json='{"id_comment":"C${comment.id}", "comment_text": "${comment_title!?html}", "start":"${comment.startingValidityDate!}", "comment_start":"${comment.startingValidityDate!}", "comment_start_time":"${comment.startingValidityTime!}", "start_time":"${comment.startingValidityTime!}", "comment_end":"${comment.endingValidityDate!}", "validity_end":"${comment.endingValidityDate!}", "comment_end_time":"${comment.endingValidityTime!}", "end_time":"${comment.endingValidityTime!}", "comment_creation_user":"${comment.creatorUserName!}", "comment_creation_date":"${comment.creationDate?date.xs!''}"}' style="cursor: pointer;">
 							<div class="fc-content"> 
 								<span class="fc-title">
 									<p>
@@ -300,7 +300,7 @@ $(function () {
 		/* Add comment render */
 		labelEventDate=setLabelComment( event );
 
-		json.content = '<p>' + labelEventDate +'</p><p>Créé par <em>' + event.comment_creation_user + '</em> le <date>' + event.comment_creation_date + '</date><hr>'+ event.comment_text + '</p>';
+		json.content = '<p>' + labelEventDate +'</p><p>Créé par <em>' + event.comment_creation_user + '</em> le <date>' + event.comment_creation_date + '</date></p><hr><p>' + event.comment_text + '</p>';
 		$(this).popover( json );
 	
 		// Set comments backgrounds
