@@ -54,6 +54,7 @@ import fr.paris.lutece.plugins.appointment.service.WeekDefinitionService;
 import fr.paris.lutece.plugins.appointment.web.AppointmentFormJspBean;
 import fr.paris.lutece.plugins.appointment.web.dto.AppointmentFilterDTO;
 import fr.paris.lutece.plugins.appointment.web.dto.AppointmentFormDTO;
+import fr.paris.lutece.plugins.appointment.web.dto.CommentDTO;
 import fr.paris.lutece.portal.service.util.AppLogService;
 import fr.paris.lutece.portal.service.admin.AccessDeniedException;
 import fr.paris.lutece.portal.service.i18n.I18nService;
@@ -193,14 +194,13 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         }
         Map<String, Object> model = getModel();
         java.sql.Date dateSqlDaey= java.sql.Date.valueOf(dateDay);
-        List<Comment> listComment= CommentService.findListCommentsInclusive( dateSqlDaey, dateSqlDaey , nIdForm );
-        
+        List<CommentDTO> listComment= CommentService.buildCommentDTO( CommentService.findListCommentsInclusive( dateSqlDaey, dateSqlDaey , nIdForm ) );
+     
         AppointmentFilterDTO filter= new AppointmentFilterDTO ();
         filter.setIdForm( nIdForm );
         filter.setStartingDateOfSearch( java.sql.Date.valueOf( dateDay ) );
         filter.setEndingDateOfSearch( java.sql.Date.valueOf( dateDay ) );
-        filter.setStatus( 0 );
-        
+        filter.setStatus( 0 );        
 		List<Appointment> listAppt = AppointmentService.findListAppointmentsByFilter(filter);
 		_nMaxCapacity= appointmentDesk;
 		
