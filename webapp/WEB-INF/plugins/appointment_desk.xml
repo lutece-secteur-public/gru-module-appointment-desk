@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?><plug-in>
     <name>appointment-desk</name>
     <class>fr.paris.lutece.portal.service.plugin.PluginDefaultImplementation</class>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <documentation/>
     <installation/>
     <changes/>
@@ -9,7 +9,7 @@
     <description>module.appointment.desk.module.description</description>
     <provider>module.appointment.desk.module.provider</provider>
     <provider-url>http://dev.lutece.paris.fr</provider-url>
-    <icon-url></icon-url>
+    <icon-url/>
     <copyright>Copyright (c) 2020 Mairie de Paris</copyright>
     <db-pool-required>1</db-pool-required>
     
