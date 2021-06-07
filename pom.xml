@@ -9,7 +9,7 @@
     <groupId>fr.paris.lutece.plugins</groupId>
     <artifactId>module-appointment-desk</artifactId>
     <packaging>lutece-plugin</packaging>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>Lutece appointment desk module</name>
 
     <repositories>
@@ -41,12 +41,12 @@
      <properties>
         <componentName>appointmentdesk</componentName>
         <jiraProjectName>MAPPTDESK</jiraProjectName>
-        <jiraComponentId></jiraComponentId>
+        <jiraComponentId />
     </properties>
     <scm>
         <connection>scm:git:https://github.com/lutece-secteur-public/gru-module-appointment-desk.git</connection>
         <developerConnection>scm:git:https://github.com/lutece-secteur-public/gru-module-appointment-desk.git</developerConnection>
         <url>https://github.com/lutece-secteur-public/gru-module-appointment-desk.git</url>
-      <tag>HEAD</tag>
+      <tag>module-appointment-desk-1.0.0</tag>
   </scm>
 </project>
