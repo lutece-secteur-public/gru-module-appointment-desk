@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002-2018, Mairie de Paris
+ * Copyright (c) 2002-2021, City of Paris
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ public final class AppointmentDeskPlugin extends Plugin
      * Name of the appointment desk plugin
      */
     public static final String PLUGIN_NAME = "appointment-desk";
-    
+
     private static Locale _pluginLocale;
 
     /**
@@ -62,36 +62,35 @@ public final class AppointmentDeskPlugin extends Plugin
     @Override
     public void init( )
     {
-        BeanUtilsBean.getInstance( ).getConvertUtils( )
-                .register( new DateConverter( DateFormat.getDateInstance( DateFormat.SHORT, getPluginLocale( ) ) ), java.sql.Date.class );
+        BeanUtilsBean.getInstance( ).getConvertUtils( ).register( new DateConverter( DateFormat.getDateInstance( DateFormat.SHORT, getPluginLocale( ) ) ),
+                java.sql.Date.class );
     }
 
-   
- 
     /**
      * Get the locale used by this plugin
      * 
      * @return The locale used by this plugin
      */
-    public static Locale getPluginLocale()
+    public static Locale getPluginLocale( )
     {
-        if( _pluginLocale != null )
+        if ( _pluginLocale != null )
         {
             return _pluginLocale;
         }
-        return LocaleService.getDefault();
+        return LocaleService.getDefault( );
     }
-    
+
     /**
      * Set the plugin locale (used for unit tests)
-     * @param locale The locale
+     * 
+     * @param locale
+     *            The locale
      */
     public static void setPluginLocale( Locale locale )
     {
         _pluginLocale = locale;
     }
-     
-    
+
     /**
      * Get the appointment plugin
      * 
