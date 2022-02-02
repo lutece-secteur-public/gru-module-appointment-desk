@@ -70,7 +70,6 @@ package fr.paris.lutece.plugins.appointment.modules.desk.web;
 
 import fr.paris.lutece.api.user.User;
 import fr.paris.lutece.plugins.appointment.business.appointment.Appointment;
-import fr.paris.lutece.plugins.appointment.business.comment.Comment;
 import fr.paris.lutece.plugins.appointment.business.form.Form;
 import fr.paris.lutece.plugins.appointment.business.planning.WeekDefinition;
 import fr.paris.lutece.plugins.appointment.business.slot.Slot;
@@ -126,6 +125,11 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @Controller( controllerJsp = "ManageAppointmentDesks.jsp", controllerPath = "jsp/admin/plugins/appointment/modules/desk/", right = AppointmentFormJspBean.RIGHT_MANAGEAPPOINTMENTFORM )
 public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
 {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -2761497602249048780L;
+
     // Templates
     private static final String TEMPLATE_MANAGE_APPOINTMENTDESKS = "/admin/plugins/appointment/modules/desk/manage_appointmentdesks.html";
 
