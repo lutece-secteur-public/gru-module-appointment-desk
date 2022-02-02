@@ -83,6 +83,11 @@ import javax.servlet.http.HttpServletRequest;
  */
 public abstract class AbstractManageAppointmentDeskJspBean extends MVCAdminJspBean
 {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 5257025145967645214L;
+
     // Rights
     public static final String RIGHT_MANAGEAPPOINTMENTDESK = "APPOINTMENT_DESK_MANAGEMENT";
 
