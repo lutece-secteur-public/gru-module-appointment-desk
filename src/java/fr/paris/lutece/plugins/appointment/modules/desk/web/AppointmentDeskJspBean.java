@@ -88,9 +88,12 @@ import fr.paris.lutece.plugins.appointment.web.dto.AppointmentFilterDTO;
 import fr.paris.lutece.plugins.appointment.web.dto.AppointmentFormDTO;
 import fr.paris.lutece.plugins.appointment.web.dto.CommentDTO;
 import fr.paris.lutece.portal.service.util.AppLogService;
+import fr.paris.lutece.portal.service.util.AppPropertiesService;
 import fr.paris.lutece.portal.service.admin.AccessDeniedException;
 import fr.paris.lutece.portal.service.i18n.I18nService;
 import fr.paris.lutece.portal.service.mailinglist.AdminMailingListService;
+import fr.paris.lutece.portal.service.plugin.Plugin;
+import fr.paris.lutece.portal.service.plugin.PluginService;
 import fr.paris.lutece.portal.service.rbac.RBACService;
 import fr.paris.lutece.portal.util.mvc.admin.annotations.Controller;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.Action;
@@ -162,6 +165,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String MARK_ACTIVATE_EDIT_MODE = "activateEditMode";
     private static final String MARK_MAILING_LIST = "mailing_list";
     private static final String MARK_CONTEXT = "context";
+    private static final String MARK_APPOINTMENT_DESK_ENABLED = "isDeskInstalled";
 
     // Properties
 
@@ -195,6 +199,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     @View( value = VIEW_MANAGE_APPOINTMENTDESKS, defaultView = true )
     public String getManageAppointmentDesks( HttpServletRequest request )
     {
+        Plugin moduleAppointmentDesk = getPlugin( );
         String strIdForm = request.getParameter( PARAMETER_ID_FORM );
         int nIdForm = Integer.parseInt( strIdForm );
         String strDayDate = request.getParameter( PARAMETER_DATE_DAY );
@@ -259,6 +264,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         model.put( AppointmentUtilities.MARK_PERMISSION_MODERATE_COMMENT, String.valueOf( RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, strIdForm,
                 AppointmentResourceIdService.PERMISSION_MODERATE_COMMENT_FORM, user ) ) );
         model.put( AppointmentUtilities.MARK_PERMISSION_ACCESS_CODE, user.getAccessCode( ) );
+        model.put( MARK_APPOINTMENT_DESK_ENABLED, ( moduleAppointmentDesk != null ) && moduleAppointmentDesk.isInstalled( ) );
 
         return getPage( PROPERTY_PAGE_TITLE_MANAGE_APPOINTMENTDESKS, TEMPLATE_MANAGE_APPOINTMENTDESKS, model );
     }
