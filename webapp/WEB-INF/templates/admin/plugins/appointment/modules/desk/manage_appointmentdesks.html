@@ -3,15 +3,9 @@
 <link rel="stylesheet" href="css/admin/plugins/appointment/fullcalendar.custom.css" >
 <link rel='stylesheet' href="css/plugins/appointment/bootstrap-datetimepicker.css">
 <link rel="stylesheet" href="css/admin/plugins/appointment/appointment_desk.css">
-
 <#if list_comments?size gt 3>
-<style>
-#selectable thead { 
-	height: ${list_comments?size*3}vh;
-}
-</style>
+<style>#selectable thead { height: ${list_comments?size*3}vh;}</style>
 </#if>
-
 <@appointmentTabs tab='day' form=appointmentForm context=context>
 	<div id="calendar" class="fc ui-widget fc-ltr">
 		<div class="fc-toolbar fc-header-toolbar row">
@@ -59,7 +53,9 @@
 			<@table id='selectable' class='clearfix' headBody=true>
 			<tr>
 				<th>
-				<#if activateEditMode>
+				<#-- Check if day selected is less than today, if < 0 the add desk button is not displayed -->
+				<#assign isLteToday = (day?date?long / 86400000)?round - (.now?date?long / 86400000)?round + 1 />
+				<#if activateEditMode && isLteToday gte 0 >
 					<@button type='button' color='link' style='btn-link' class='open-desk' params=' data-toggle="modal"' buttonTargetId='#deskModal' title='#i18n{appointmentdesk.manage_appointmentdesks.label.addDesk}' hideTitle=[''] buttonNested=true >
 						<@iconStack class='fa-1x'>
 							<@icon style='desktop' class='fa-stack-2x' />
@@ -76,14 +72,14 @@
 			</tr>
 			<tr>
 				<td>
-					<#if permission_add_comment?boolean>
-						<@button id='toggle-add-comment' style='none' class='btn btn-link' title='#i18n{module.appointment.desk.label.addComment}' hideTitle=[''] params=' data-toggle="modal" data-target="#commentModal" ' buttonNested=true>
-							<@iconStack class='fa-sm'>
-								<@icon prefix='far fa-' style='comment' class='fa-stack-2x' />
-								<@icon style='plus' class='fa-stack-1x' />
-							</@iconStack>
-						</@button>	
-					</#if>							
+				<#if permission_add_comment?boolean>
+					<@button id='toggle-add-comment' style='none' class='btn btn-link' title='#i18n{module.appointment.desk.label.addComment}' hideTitle=[''] params=' data-toggle="modal" data-target="#commentModal" ' buttonNested=true>
+						<@iconStack class='fa-sm'>
+							<@icon prefix='far fa-' style='comment' class='fa-stack-2x' />
+							<@icon style='plus' class='fa-stack-1x' />
+						</@iconStack>
+					</@button>	
+				</#if>							
 				</td>
 				<td colspan="${x}">
 				<#if list_comments?size gt 0>
