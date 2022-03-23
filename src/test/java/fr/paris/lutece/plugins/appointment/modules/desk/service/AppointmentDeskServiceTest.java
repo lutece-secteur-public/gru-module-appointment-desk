@@ -37,8 +37,9 @@ import org.junit.Test;
 
 import fr.paris.lutece.test.LuteceTestCase;
 
-public class AppointmentDeskServiceTest extends LuteceTestCase {
-    
+public class AppointmentDeskServiceTest extends LuteceTestCase
+{
+
     @Test
     public void testAppointmentDeskService( )
     {
