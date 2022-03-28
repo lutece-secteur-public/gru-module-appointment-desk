@@ -54,7 +54,11 @@
 			<tr>
 				<th>
 				<#-- Check if day selected is less than today, if < 0 the add desk button is not displayed -->
-				<#assign isLteToday = (day?date?long / 86400000)?round - (.now?date?long / 86400000)?round + 1 />
+				<#if .now?date?string["ddMMyyyy"] == day?date?string["ddMMyyyy"]>
+					<#assign isLteToday = 1 />
+				<#else>
+					<#assign isLteToday = (day?date?long / 86400000)?round - (.now?date?long / 86400000)?round />
+				</#if>
 				<#if activateEditMode && isLteToday gte 0 >
 					<@button type='button' color='link' style='btn-link' class='open-desk' params=' data-toggle="modal"' buttonTargetId='#deskModal' title='#i18n{appointmentdesk.manage_appointmentdesks.label.addDesk}' hideTitle=[''] buttonNested=true >
 						<@iconStack class='fa-1x'>
