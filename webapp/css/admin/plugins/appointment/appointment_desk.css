@@ -16,6 +16,17 @@
 	margin: auto
 } 
 
+.fc-center #manage_appointmentdesk .h2{
+	margin: -.15em 0 0 .75em;
+	border: 0;    
+	font-size: 1.75em;
+    font-weight: 700;
+}
+
+.fc-center #manage_appointmentdesk .h2:focus-visible{
+	outline: 0;
+}
+
 .fc-datepicker{
 	vertical-align: top
 }
@@ -44,14 +55,9 @@
     font-weight: 700;
 }
 
-.open-desk,
-#toggle-add-comment{
-	z-index: 99;
-}
-
 /* Table			 */
 #selectable{
-	margin: 2rem auto;
+	margin: 0 auto;
 	border-collapse: separate;
 	overflow: hidden;
 	height: 80vh;
