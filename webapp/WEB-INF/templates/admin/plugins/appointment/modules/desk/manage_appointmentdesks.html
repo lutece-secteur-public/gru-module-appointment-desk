@@ -63,7 +63,7 @@
 					<@button type='button' color='link' style='btn-link' class='open-desk' params=' data-toggle="modal"' buttonTargetId='#deskModal' title='#i18n{appointmentdesk.manage_appointmentdesks.label.addDesk}' hideTitle=[''] buttonNested=true >
 						<@iconStack class='fa-1x'>
 							<@icon style='desktop' class='fa-stack-2x' />
-							<@icon style='plus' class='fa-stack-1x' />
+							<@icon style='plus mt-1' class='fa-stack-1x' />
 						</@iconStack>
 					</@button>
 				</#if>
@@ -78,10 +78,10 @@
 				<td>
 				<#if permission_add_comment?boolean>
 					<@button id='toggle-add-comment' style='none' class='btn btn-link' title='#i18n{module.appointment.desk.label.addComment}' hideTitle=[''] params=' data-toggle="modal" data-target="#commentModal" ' buttonNested=true>
-						<@iconStack class='fa-sm'>
-							<@icon prefix='far fa-' style='comment' class='fa-stack-2x' />
-							<@icon style='plus' class='fa-stack-1x' />
-						</@iconStack>
+						<@iconStack class='fa-xs'>
+							<@icon prefix='' style='far fa-comment fa-stack-2x' />
+							<@icon prefix='' style='fas fa-plus fa-stack-1x' />
+						</@iconStack> 
 					</@button>	
 				</#if>							
 				</td>
@@ -139,7 +139,6 @@
 	</#if>
 </div>
 </@appointmentTabs>
-
 <@modal id='qModal'>
 	<@modalBody>
 		<p id="loader" class="text-center">
@@ -149,7 +148,6 @@
 		<iframe style="width:100%;height:60vh;border:0" frameborder="0" id="qModalFrame" src=""></iframe>
 	</@modalBody>
 </@modal>
-
 <@modal id='slottoggle' size='sm'>
 	<@modalBody>
 	<div style="margin-left:25%">
@@ -162,7 +160,6 @@
 	</div>
 	</@modalBody>
 </@modal>
-
 <#if activateEditMode>
 <@modal id='deskModal'>
 	<@modalHeader modalTitle='#i18n{module.appointment.desk.increment.defaultTitle}' />
@@ -217,17 +214,14 @@
 	</@modalBody>
 </@modal>
 </#if>
-
 <@getCommentModal 'commentModal' '#i18n{appointment.create_comment.pageTitle}' "comment" "startingValidityDate" "endingValidityDate" "idStartingTime" "idEndingTime" "doAddComment" idForm mailing_list />
 <@getCommentModal 'modify-comment' '#i18n{appointment.modify_comment.pageTitle}' "comment" "modifyStartingValidityDate" "modifyEndingValidityDate" "idModifyStartingTime" "idModifyEndingTime" "doModifyComment" idForm mailing_list />
-
 <script src="js/admin/plugins/appointment/appointment.js"></script>
 <script src="js/admin/plugins/appointment/moment.min.js"></script>
 <script src="js/admin/plugins/appointment/locale-all.js"></script>
 <script src="js/admin/plugins/appointment/bootstrap-datetimepicker.min.js"></script>
 <script src="js/bootstrap-datepicker.js"></script>
 <script src="js/locales/bootstrap-datepicker.<@getLanguageInLocale language=language />.js"></script>
-
 <#if activateEditMode>
 <script src="js/admin/plugins/appointment/selectable.min.js"></script>
 <script src="js/admin/plugins/appointment/selectable.table.min.js"></script>
@@ -239,7 +233,6 @@ $(function () {
 		/* Add selectable function to table cell */
 		setSelection();
 	</#if>	
-
 	$('#day').datepicker({
 		language : '${language}',
 		weekStart : 1,
@@ -301,7 +294,7 @@ $(function () {
 		labelEventDate=setLabelComment( event );
 
 		json.content = '<p>' + labelEventDate +'</p><p>Créé par <em>' + event.comment_creation_user + '</em> le <date>' + event.comment_creation_date + '</date></p><hr><p>' + event.comment_text + '</p>';
-		$(this).popover( json );
+		const popover = new bootstrap.Popover( this, json )
 	
 		// Set comments backgrounds
 		var cDay=$('#day').val()
@@ -340,6 +333,7 @@ const nDesks=${numb_desk+1}, isMultiSlot=${appointmentForm.isMultislotAppointmen
 
 /* Add RDV in day view  */
 setDayView( appointments );
+document.getElementById('loader').remove();
 </script>
 <#include "/admin/util/editor/editor.html" />
 <@initEditor type='comment' />
