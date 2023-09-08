@@ -2,15 +2,15 @@
 <link rel="stylesheet" href="css/admin/plugins/appointment/fullcalendar.min.css" >
 <link rel="stylesheet" href="css/admin/plugins/appointment/fullcalendar.custom.css" >
 <link rel='stylesheet' href="css/plugins/appointment/bootstrap-datetimepicker.css">
-<link rel="stylesheet" href="css/admin/plugins/appointment/appointment_desk.css">
+<link rel="stylesheet" href="css/admin/plugins/appointment/appointment_desk.css"> 
 <#if list_comments?size gt 3>
 <style>#selectable thead { height: ${list_comments?size*3}vh;}</style>
 </#if>
 <@appointmentTabs tab='day' form=appointmentForm context=context>
-	<div id="calendar" class="fc ui-widget fc-ltr">
-		<div class="fc-toolbar fc-header-toolbar row">
+	<div id="calendar" class="fc fc-ltr">
+		<div class="fc-toolbar fc-header-toolbar">
 			<div class="fc-left">
-				<@tform type='inline' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' method='get'>
+				<@tform class='d-inline-block' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' method='get'>
 					<#assign dDay = day?date>
 					<#assign pDay = dDay?long - (1 * 24 * 60 * 60 * 1000)>
 					<@input type='hidden' name='id_form' value='${idForm!1}' />
@@ -20,7 +20,7 @@
 				</@tform>
 			</div>
 			<div class="fc-right">
-				<@tform type='inline' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' method='get' class='hidden-xs'>
+				<@tform class='d-inline-block' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' method='get' class='hidden-xs'>
 					<#assign nDay = dDay?long + (1 * 24 * 60 * 60 * 1000)>
 					<@input type='hidden' name='id_form' value='${idForm!1}' />
 					<@input type='hidden' name='day' value='${nDay?number_to_date}' />
@@ -30,7 +30,7 @@
 			</div>
 			<div class="fc-center">
 				<#if day?date?string != .now?date?string >
-					<@tform type='inline' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' method='get'>
+					<@tform  class='d-inline-block'name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' method='get'>
 						<#assign dDay = .now>
 						<@input type='hidden' name='id_form' value='${idForm!1}' />
 						<@input type='hidden' name='day' value='${dDay?date}' />
@@ -42,25 +42,21 @@
 					<@input type='hidden' name='id_form' value='${idForm!1}' />	
 					<@input type='hidden' name='context' value='${context!"desk"}' />
 					<button type="button" class="fc-datepicker btn btn-primary btn-sm">Choisir une date </button>
-					<@input type='text' name='day' id='day' value="${day!''}" params=' style="border:none;font-family: \'Source Sans Pro\',sans-serif;font-size:30px"' />
+					<input type='text' class='h2' name='day' id='day' value="${day!''}"  />
 				</@tform>
 			</div>
 		</div>
 		<#if list_slot?size gt 0>
 		<div class="fc-clear"></div>
-		<div class="fc-view-container">
+		<div class="fc-view-container ui-widget ">
 			<div class="fc-view fc-agendaWeek-view fc-agenda-view">
 			<@table id='selectable' class='clearfix' headBody=true>
 			<tr>
 				<th>
 				<#-- Check if day selected is less than today, if < 0 the add desk button is not displayed -->
-				<#if .now?date?string["ddMMyyyy"] == day?date?string["ddMMyyyy"]>
-					<#assign isLteToday = 1 />
-				<#else>
-					<#assign isLteToday = (day?date?long / 86400000)?round - (.now?date?long / 86400000)?round />
-				</#if>
+				<#assign isLteToday = (day?date?long / 86400000)?round - (.now?date?long / 86400000)?round + 1 />
 				<#if activateEditMode && isLteToday gte 0 >
-					<@button type='button' color='link' style='btn-link' class='open-desk' params=' data-toggle="modal"' buttonTargetId='#deskModal' title='#i18n{appointmentdesk.manage_appointmentdesks.label.addDesk}' hideTitle=[''] buttonNested=true >
+					<@button type='button' color='link' params=' data-bs-toggle="modal" data-bs-backdrop="true"' buttonTargetId='#deskModal' title='#i18n{appointmentdesk.manage_appointmentdesks.label.addDesk}' hideTitle=[''] buttonNested=true >
 						<@iconStack class='fa-1x'>
 							<@icon style='desktop' class='fa-stack-2x' />
 							<@icon style='plus mt-1' class='fa-stack-1x' />
@@ -77,12 +73,12 @@
 			<tr>
 				<td>
 				<#if permission_add_comment?boolean>
-					<@button id='toggle-add-comment' style='none' class='btn btn-link' title='#i18n{module.appointment.desk.label.addComment}' hideTitle=[''] params=' data-toggle="modal" data-target="#commentModal" ' buttonNested=true>
+					<@button id='toggle-add-comment' style='none' color='info mt-2 me-1' title='#i18n{appointment.create_comment.pageTitle}' hideTitle=[''] params=' data-toggle="modal" data-bs-backdrop="true" data-target="#commentModal" ' buttonNested=true>
 						<@iconStack class='fa-xs'>
 							<@icon prefix='' style='far fa-comment fa-stack-2x' />
 							<@icon prefix='' style='fas fa-plus fa-stack-1x' />
 						</@iconStack> 
-					</@button>	
+					</@button>
 				</#if>							
 				</td>
 				<td colspan="${x}">
@@ -156,7 +152,7 @@
 	</div>
 	<div style="text-align: center;">
 		<@button id='saveSlotState' color='primary' title='#i18n{module.appointment.desk.label.save}' />
-		<@button id='cancelSlotState' color='secondary' title='#i18n{module.appointment.desk.label.cancel}' params=' data-dismiss="modal" aria-label="#i18n{module.appointment.desk.label.cancel}"' />
+		<@button id='cancelSlotState' color='secondary' title='#i18n{module.appointment.desk.label.cancel}' params='data-bs-dismiss="modal" aria-label="#i18n{module.appointment.desk.label.cancel}"' />
 	</div>
 	</@modalBody>
 </@modal>
@@ -187,7 +183,7 @@
 				<@inputGroup>
 					<@input type='text' name='starting_time' id='startingTime' value='' />
 					<@inputGroupItem type='text'>
-						<@icon style='clock-o' />
+						<@icon style='clock' />
 					</@inputGroupItem>
 				</@inputGroup>
 			</@formGroup>
@@ -203,7 +199,7 @@
 				<@inputGroup>
 					<@input type='text' name='ending_time' id='endingTime' value='' />
 					<@inputGroupItem type='text'>
-						<@icon style='clock-o' />
+						<@icon style='clock' />
 					</@inputGroupItem>
 				</@inputGroup>
 			</@formGroup>
@@ -222,6 +218,7 @@
 <script src="js/admin/plugins/appointment/bootstrap-datetimepicker.min.js"></script>
 <script src="js/bootstrap-datepicker.js"></script>
 <script src="js/locales/bootstrap-datepicker.<@getLanguageInLocale language=language />.js"></script>
+
 <#if activateEditMode>
 <script src="js/admin/plugins/appointment/selectable.min.js"></script>
 <script src="js/admin/plugins/appointment/selectable.table.min.js"></script>
@@ -233,6 +230,7 @@ $(function () {
 		/* Add selectable function to table cell */
 		setSelection();
 	</#if>	
+
 	$('#day').datepicker({
 		language : '${language}',
 		weekStart : 1,
@@ -253,7 +251,7 @@ $(function () {
 		$('#qModalFrame').show();
 		$('#loader').hide();
 		});
-	});
+	}); 
 	<#if activateEditMode>
 	// DESK ADD MODAL
 	$('#startingTime').datetimepicker({
