@@ -1,7 +1,3 @@
-<link rel="stylesheet" href="css/admin/plugins/appointment/appointment.css">
-<link rel="stylesheet" href="css/admin/plugins/appointment/fullcalendar.min.css" >
-<link rel="stylesheet" href="css/admin/plugins/appointment/fullcalendar.custom.css" >
-<link rel='stylesheet' href="css/plugins/appointment/bootstrap-datetimepicker.css">
 <link rel="stylesheet" href="css/admin/plugins/appointment/appointment_desk.css"> 
 <#if list_comments?size gt 3>
 <style>#selectable thead { height: ${list_comments?size*3}vh;}</style>
@@ -56,7 +52,7 @@
 				<#-- Check if day selected is less than today, if < 0 the add desk button is not displayed -->
 				<#assign isLteToday = (day?date?long / 86400000)?round - (.now?date?long / 86400000)?round + 1 />
 				<#if activateEditMode && isLteToday gte 0 >
-					<@button type='button' color='link' params=' data-bs-toggle="modal" data-bs-backdrop="true"' buttonTargetId='#deskModal' title='#i18n{appointmentdesk.manage_appointmentdesks.label.addDesk}' hideTitle=[''] buttonNested=true >
+					<@button type='button' color='link' params=' data-bs-toggle="modal" data-bs-target="#deskModal"' title='#i18n{appointmentdesk.manage_appointmentdesks.label.addDesk}' hideTitle=[''] >
 						<@iconStack class='fa-1x'>
 							<@icon style='desktop' class='fa-stack-2x' />
 							<@icon style='plus mt-1' class='fa-stack-1x' />
@@ -73,7 +69,7 @@
 			<tr>
 				<td>
 				<#if permission_add_comment?boolean>
-					<@button id='toggle-add-comment' style='none' color='info mt-2 me-1' title='#i18n{appointment.create_comment.pageTitle}' hideTitle=[''] params=' data-toggle="modal" data-bs-backdrop="true" data-target="#commentModal" ' buttonNested=true>
+					<@button id='toggle-add-comment' style='none' color='info mt-2 me-1' title='#i18n{appointment.create_comment.pageTitle}' params='data-bs-toggle="modal" data-bs-target="#commentModal" '  hideTitle=['']  >
 						<@iconStack class='fa-xs'>
 							<@icon prefix='' style='far fa-comment fa-stack-2x' />
 							<@icon prefix='' style='fas fa-plus fa-stack-1x' />
@@ -160,7 +156,7 @@
 <@modal id='deskModal'>
 	<@modalHeader modalTitle='#i18n{module.appointment.desk.increment.defaultTitle}' />
 	<@modalBody>
-		<p id="loader" class="text-center">#i18n{module.appointment.desk.increment.defaultTitle}</p>
+		<p class="text-center">#i18n{module.appointment.desk.increment.defaultTitle}</p>
 		<@tform id='form-validate' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' params='enctype="multipart/form-data"'>
 			<@input type='hidden' name='action' value='incrementMaxCapacity' />
 			<@input type='hidden' name='id_form' value='${idForm!}' />
@@ -212,12 +208,6 @@
 </#if>
 <@getCommentModal 'commentModal' '#i18n{appointment.create_comment.pageTitle}' "comment" "startingValidityDate" "endingValidityDate" "idStartingTime" "idEndingTime" "doAddComment" idForm mailing_list />
 <@getCommentModal 'modify-comment' '#i18n{appointment.modify_comment.pageTitle}' "comment" "modifyStartingValidityDate" "modifyEndingValidityDate" "idModifyStartingTime" "idModifyEndingTime" "doModifyComment" idForm mailing_list />
-<script src="js/admin/plugins/appointment/appointment.js"></script>
-<script src="js/admin/plugins/appointment/moment.min.js"></script>
-<script src="js/admin/plugins/appointment/locale-all.js"></script>
-<script src="js/admin/plugins/appointment/bootstrap-datetimepicker.min.js"></script>
-<script src="js/bootstrap-datepicker.js"></script>
-<script src="js/locales/bootstrap-datepicker.<@getLanguageInLocale language=language />.js"></script>
 
 <#if activateEditMode>
 <script src="js/admin/plugins/appointment/selectable.min.js"></script>
@@ -230,7 +220,6 @@ $(function () {
 		/* Add selectable function to table cell */
 		setSelection();
 	</#if>	
-
 	$('#day').datepicker({
 		language : '${language}',
 		weekStart : 1,
@@ -324,7 +313,6 @@ const appointments = [<#list list_appointment?sort_by('appointmentTakenSqlDate')
 {"id":"${app.idAppointment}","lastName" : "${app.user.lastName}","firstName" : "${app.user.firstName}","places": ${app.nbPlaces},"slots":[<#list app.slot?sort_by('startingDateTime') as slot>{"id" : "${slot.idSlot}", "start" : "${slot.startingDateTime!?datetime.iso?string["ddMM-HHmm"]}", },</#list>],},
 </#compress>
 </#list>];
-
 
 /* Begin set RDV 		*/
 const nDesks=${numb_desk+1}, isMultiSlot=${appointmentForm.isMultislotAppointment?c}, appUrlDetail='jsp/admin/plugins/appointment/ManageAppointments.jsp?view=viewAppointment&id_form=${idForm!}&id_appointment=';
