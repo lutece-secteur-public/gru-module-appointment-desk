@@ -37,7 +37,7 @@
 				<@tform type='inline' id='manage_appointmentdesk' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' method='get'>
 					<@input type='hidden' name='id_form' value='${idForm!1}' />	
 					<@input type='hidden' name='context' value='${context!"desk"}' />
-					<button type="button" class="fc-datepicker btn btn-primary btn-sm">Choisir une date </button>
+					<button type="button" class="fc-datepicker btn btn-primary btn-sm">#i18n{appointment.appointmentCalendar.labelChooseDate}</button>
 					<input type='text' class='h2' name='day' id='day' value="${day!''}"  />
 				</@tform>
 			</div>
