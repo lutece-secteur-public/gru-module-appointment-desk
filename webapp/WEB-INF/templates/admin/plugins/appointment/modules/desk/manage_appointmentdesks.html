@@ -12,7 +12,7 @@
 					<@input type='hidden' name='id_form' value='${idForm!1}' />
 					<@input type='hidden' name='day' value='${pDay?number_to_date}' />
 					<@input type='hidden' name='context' value='' />
-					<button type="submit" class="btn btn-primary btn-sm">#i18n{module.appointment.desk.label.prevDay}</button>
+					<button type="submit" class="btn btn-primary btn-sm">#i18n{appointment.appointmentApp.previousDay}</button>
 				</@tform>
 			</div>
 			<div class="fc-right">
@@ -21,7 +21,7 @@
 					<@input type='hidden' name='id_form' value='${idForm!1}' />
 					<@input type='hidden' name='day' value='${nDay?number_to_date}' />
 					<@input type='hidden' name='context' value='' />
-					<button type="submit" class="btn btn-primary btn-sm">#i18n{module.appointment.desk.label.nextDay}</button>
+					<button type="submit" class="btn btn-primary btn-sm">#i18n{appointment.appointmentApp.nextDay}</button>
 				</@tform>
 			</div>
 			<div class="fc-center">
@@ -214,6 +214,7 @@
 <script src="js/admin/plugins/appointment/selectable.table.min.js"></script>
 </#if>
 <script src="js/admin/plugins/appointment/appointment_desk.js"></script>
+<script src="js/admin/plugins/appointment/locales/bootstrap-datepicker.${language}.js" ></script>
 <script>
 $(function () {
 	<#if activateEditMode>
