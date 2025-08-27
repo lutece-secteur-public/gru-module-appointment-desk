@@ -1,31 +1,68 @@
-
 <?xml version="1.0" encoding="UTF-8"?>
 <document>
     <properties>
-        <title>Plugin appointment-desk</title>
+        <title>
+            Module Appointment Desk
+        </title>
     </properties>
-    <head>
-        <!-- Keywords example : "cms, authentication, cms, workflow, seo, collaborative, ..." 
-             Use the language of this xdoc -->
-        <meta name="keywords" content="" />
-    </head>
     <body>
-        <section name="Plugin appointment-desk">
-            <!--
-            <p>
-                <img src="images/appointment-desk.png" />
-            </p>
-            -->
+        <section name="Module Appointment Desk">
+
             <subsection name="Introduction">
-                <p></p>
+                <p>
+                    The <strong>Module Appointment Desk</strong> is a visualization tool for daily slots and appointments.
+                    It integrates a new tab (<em>Day view</em>) giving agents a consolidated view of appointments and slot availability.
+                </p>
+                <p>Access paths:</p>
+                <ul>
+                    <li><strong>Appointment context</strong>: via the appointment management screens</li>
+                    <li><strong>Slot context</strong>: via the planning screens</li>
+                </ul>
             </subsection>
+
+            <subsection name="Implementation">
+                <p>
+                    The module integrates a dedicated FreeMarker template and a controller, and depends on the <code>appointment</code> plugin:
+                </p>
+                <ul>
+                    <li>Template: <code>admin/plugins/appointment/modules/desk/manage_appointmentdesks.html</code></li>
+                    <li>Controller: <code>fr.paris.lutece.plugins.appointment.modules.desk.web.AppointmentDeskJspBean</code></li>
+                    <li>Access (with explicit context):</li>
+                    <ul>
+                        <li><code>/jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?plugin_name=appointment-desk&amp;id_form=1&amp;context=app</code></li>
+                        <li><code>/jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?plugin_name=appointment-desk&amp;id_form=1&amp;context=slot</code></li>
+                    </ul>
+                    <li>Required RBAC right: <code>AppointmentFormJspBean.RIGHT_MANAGEAPPOINTMENTFORM</code></li>
+                    <li>No additional Spring beans are declared for this module.</li>
+                </ul>
+            </subsection>
+
             <subsection name="Configuration">
-                <p></p>
+                <p>
+                    No specific configuration is required.
+                </p>
             </subsection>
+
             <subsection name="Usage">
-                <p></p>
+                <p>
+                    The Day view provides daily navigation and actions to manage slots and capacity for a given form and date.
+                    Typical user flow:
+                </p>
+                <ul>
+                    <li><strong>Navigation</strong>: previous day, next day, today button, and datepicker to select the target date.</li>
+                    <li><strong>Comments</strong>: display of day comments with popovers; creation/modification according to permissions.</li>
+                    <li><strong>Open/Close slots</strong>: toggle a slot’s availability on the selected day.</li>
+                    <li><strong>Surbooking indicator</strong>: a dedicated column highlights overbooking situations.</li>
+                    <li><strong>Increase number of desks (guichets)</strong>: add additional desks for the same day, which increases the number of free places across the day’s slots.</li>
+                </ul>
+                <p>
+                    Permissions are enforced via RBAC (at least <code>AppointmentFormJspBean.RIGHT_MANAGEAPPOINTMENTFORM</code>)
+                    for actions like opening/closing slots, adding comments, or increasing capacity.
+                </p>
             </subsection>
+
         </section>
     </body>
 </document>
+
 
