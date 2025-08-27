@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="css/admin/plugins/appointment/appointment_desk.css"> 
+<link rel="stylesheet" href="css/admin/plugins/appointment/appointment_desk.css">
 <#if list_comments?size gt 3>
 <style>#selectable thead { height: ${list_comments?size*3}vh;}</style>
 </#if>
@@ -11,7 +11,7 @@
 					<#assign pDay = dDay?long - (1 * 24 * 60 * 60 * 1000)>
 					<@input type='hidden' name='id_form' value='${idForm!1}' />
 					<@input type='hidden' name='day' value='${pDay?number_to_date}' />
-					<@input type='hidden' name='context' value='' />
+					<@input type='hidden' name='context' value='${context}' />
 					<button type="submit" class="btn btn-primary btn-sm">#i18n{appointment.appointmentApp.previousDay}</button>
 				</@tform>
 			</div>
@@ -20,7 +20,7 @@
 					<#assign nDay = dDay?long + (1 * 24 * 60 * 60 * 1000)>
 					<@input type='hidden' name='id_form' value='${idForm!1}' />
 					<@input type='hidden' name='day' value='${nDay?number_to_date}' />
-					<@input type='hidden' name='context' value='' />
+					<@input type='hidden' name='context' value='${context}' />
 					<button type="submit" class="btn btn-primary btn-sm">#i18n{appointment.appointmentApp.nextDay}</button>
 				</@tform>
 			</div>
@@ -30,13 +30,13 @@
 						<#assign dDay = .now>
 						<@input type='hidden' name='id_form' value='${idForm!1}' />
 						<@input type='hidden' name='day' value='${dDay?date}' />
-						<@input type='hidden' name='context' value='' />
+						<@input type='hidden' name='context' value='${context}' />
 						<button type="submit" class="btn btn-primary btn-sm">#i18n{module.appointment.desk.label.today}</button>
 					</@tform>
 				</#if>
 				<@tform type='inline' id='manage_appointmentdesk' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' method='get'>
-					<@input type='hidden' name='id_form' value='${idForm!1}' />	
-					<@input type='hidden' name='context' value='${context!"desk"}' />
+					<@input type='hidden' name='id_form' value='${idForm!1}' />
+					<@input type='hidden' name='context' value='${context}' />
 					<button type="button" class="fc-datepicker btn btn-primary btn-sm">#i18n{appointment.appointmentCalendar.labelChooseDate}</button>
 					<input type='text' class='h2' name='day' id='day' value="${day!''}"  />
 				</@tform>
@@ -73,9 +73,9 @@
 						<@iconStack class='fa-xs'>
 							<@icon prefix='' style='far fa-comment fa-stack-2x' />
 							<@icon prefix='' style='fas fa-plus fa-stack-1x' />
-						</@iconStack> 
+						</@iconStack>
 					</@button>
-				</#if>							
+				</#if>
 				</td>
 				<td colspan="${x}">
 				<#if list_comments?size gt 0>
@@ -88,11 +88,11 @@
 							<#assign comment_title>${comment.comment?replace('\n', '')?replace('\r', '')?replace('\rn', '')?replace('\'', '&apos;')}</#assign>
 						</#compress>
 						<a class="fc-day-grid-event fc-h-event fc-event fc-start fc-end comments${comment_class!}" data-author="${comment.creatorUserName!}" id="comment-C${comment.id!}" data-json='{"id_comment":"C${comment.id}", "comment_text": "${comment_title!?json_string}", "start":"${comment.startingValidityDate!}", "comment_start":"${comment.startingValidityDate!}", "comment_start_time":"${comment.startingValidityTime!}", "start_time":"${comment.startingValidityTime!}", "comment_end":"${comment.endingValidityDate!}", "validity_end":"${comment.endingValidityDate!}", "comment_end_time":"${comment.endingValidityTime!}", "end_time":"${comment.endingValidityTime!}", "comment_creation_user":"${comment.userFirstName!} ${comment.userLastName!}", "comment_creation_date":"${comment.creationDate?date.xs!''}"}' style="cursor: pointer;">
-							<div class="fc-content"> 
+							<div class="fc-content">
 								<span class="fc-title">
 									<p>
 									<#if ( comment.startingValidityTime?? && comment.startingValidityTime != '00:00' && comment.endingValidityTime?? &&comment.endingValidityTime != '00:00' )>
-										${comment.startingValidityTime!}/${comment.endingValidityTime!} 
+										${comment.startingValidityTime!}/${comment.endingValidityTime!}
 									</#if>
 									${comment_title!?remove_beginning('<p>')?remove_ending('</p>')?replace('\\\\"', '\\"')?replace('\\"', '\"')}
 									</p>
@@ -108,10 +108,10 @@
 			<#assign idx=1>
 			<#list list_slot?sort_by('startingDateTime') as slot>
 				<tr <#if idx=1>class="first"</#if>>
-					<td data-selectable="row" data-head-start="${slot.startingDateTime?datetime.iso?string["HH:mm"]}">${slot.startingTime!} </td>	
+					<td data-selectable="row" data-head-start="${slot.startingDateTime?datetime.iso?string["HH:mm"]}">${slot.startingTime!} </td>
 					<#setting datetime_format="iso">
 					<#list 1..x as seq >
-						<td class="${strClass!} place desk-${seq} slot-${slot.idSlot!} start-${slot.startingDateTime?datetime.iso?string["ddMM-HHmm"]} selectable <#if slot.isOpen && ( seq - slot.maxCapacity lte 0) >slot-open<#else>slot-close</#if>" data-start="${slot.startingDateTime!?datetime.iso?string["HHmm"]}" data-end="${slot.endingDateTime!?datetime.iso?string["HHmm"]}" data-marker=".desk-${seq}.slot-${slot.idSlot!}.start-${slot.startingDateTime?datetime.iso?string["ddMM-HHmm"]}" data-slot="{'idSlot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':'${slot.idForm!1}'}" ></td>	
+						<td class="${strClass!} place desk-${seq} slot-${slot.idSlot!} start-${slot.startingDateTime?datetime.iso?string["ddMM-HHmm"]} selectable <#if slot.isOpen && ( seq - slot.maxCapacity lte 0) >slot-open<#else>slot-close</#if>" data-start="${slot.startingDateTime!?datetime.iso?string["HHmm"]}" data-end="${slot.endingDateTime!?datetime.iso?string["HHmm"]}" data-marker=".desk-${seq}.slot-${slot.idSlot!}.start-${slot.startingDateTime?datetime.iso?string["ddMM-HHmm"]}" data-slot="{'idSlot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':'${slot.idForm!1}'}" ></td>
 					</#list>
 					<td class="desk-${x+1} start-${slot.startingDateTime?datetime.iso?string["ddMM-HHmm"]} bg-danger is-surbook" data-slot="" >
 				</tr>
@@ -143,8 +143,8 @@
 <@modal id='slottoggle' size='sm'>
 	<@modalBody>
 	<div style="margin-left:25%">
-		<@radioButton id='doOpenSlot' name='doManageSlot' value='1' labelFor='doOpenSlot' labelKey='#i18n{module.appointment.desk.label.open}' /> 
-		<@radioButton id='doCloseSlot' name='doManageSlot'  value='0' labelFor='doCloseSlot' labelKey='#i18n{module.appointment.desk.label.close}' /> 
+		<@radioButton id='doOpenSlot' name='doManageSlot' value='1' labelFor='doOpenSlot' labelKey='#i18n{module.appointment.desk.label.open}' />
+		<@radioButton id='doCloseSlot' name='doManageSlot'  value='0' labelFor='doCloseSlot' labelKey='#i18n{module.appointment.desk.label.close}' />
 	</div>
 	<div style="text-align: center;">
 		<@button id='saveSlotState' color='primary' title='#i18n{module.appointment.desk.label.save}' />
@@ -201,7 +201,7 @@
 			</@formGroup>
 			<@formGroup>
 				<@button type='submit' name='save' id='save' buttonIcon='check' title='#i18n{module.appointment.desk.increment.labelValidate}' />
-			</@formGroup>	
+			</@formGroup>
 		</@tform>
 	</@modalBody>
 </@modal>
@@ -220,7 +220,7 @@ $(function () {
 	<#if activateEditMode>
 		/* Add selectable function to table cell */
 		setSelection();
-	</#if>	
+	</#if>
 	$('#day').datepicker({
 		language : '${language}',
 		weekStart : 1,
@@ -241,7 +241,7 @@ $(function () {
 		$('#qModalFrame').show();
 		$('#loader').hide();
 		});
-	}); 
+	});
 	<#if activateEditMode>
 	// DESK ADD MODAL
 	$('#startingTime').datetimepicker({
@@ -270,26 +270,26 @@ $(function () {
 		todayBtn : true,
 		todayHighLight : true,
 		autoclose : true
-	});  
+	});
 	</#if>
 
 	$('.comments').each( function(){
 		moment.locale("${language}");
 		var json = { "container": "body", "placement" : "bottom", "html" : true, "trigger" : "hover" };
 		var event = JSON.parse( $(this).attr( 'data-json') ), labelEventDate='';
-		
+
 		/* Add comment render */
 		labelEventDate=setLabelComment( event );
 
 		json.content = '<p>' + labelEventDate +'</p><p>Créé par <em>' + event.comment_creation_user + '</em> le <date>' + event.comment_creation_date + '</date></p><hr><p>' + event.comment_text + '</p>';
 		const popover = new bootstrap.Popover( this, json )
-	
+
 		// Set comments backgrounds
 		var cDay=$('#day').val()
 		setCommentsBg( event, cDay, '${language}' );
 	});
 
-	// Manage Hour Comments highlight 
+	// Manage Hour Comments highlight
 	$('.fa-comment').hover( function(){
 		hourComment( $(this), true )
 		return false;
@@ -306,7 +306,7 @@ $(function () {
 
 	/* Show udpates by highlighting  */
 	slotChangeHighlight()
-});  
+});
 
 /* Get appointment list to set in day view */
 const appointments = [<#list list_appointment?sort_by('appointmentTakenSqlDate')?reverse?sort_by('nbPlaces')?reverse as app>
