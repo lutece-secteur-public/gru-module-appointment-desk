@@ -42,7 +42,7 @@ import javax.servlet.http.HttpServletRequest;
 public class RedirectAppointmentDesk implements IRedirectComment {
 
     private static final String CODE_MANAGE_APPOINTEMENTS = "appointmentdesk";
-    private static final String BASE_REDIRECT = "modules/desk/ManageAppointmentDesks.jsp?plugin_name=appointment-desk&context=app";
+    private static final String BASE_REDIRECT = "modules/desk/ManageAppointmentDesks.jsp?plugin_name=appointment-desk";
 
     private static final String PARAMETER_ID_FORM = "id_form";
 
