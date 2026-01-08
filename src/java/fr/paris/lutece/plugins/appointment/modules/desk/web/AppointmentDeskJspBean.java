@@ -33,6 +33,7 @@
  */
 package fr.paris.lutece.plugins.appointment.modules.desk.web;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.paris.lutece.api.user.User;
 import fr.paris.lutece.plugins.appointment.business.appointment.Appointment;
 import fr.paris.lutece.plugins.appointment.business.form.Form;
@@ -65,7 +66,6 @@ import fr.paris.lutece.portal.util.mvc.commons.annotations.Action;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.View;
 import fr.paris.lutece.util.ReferenceList;
 import fr.paris.lutece.util.date.DateUtil;
-import net.sf.json.JSONObject;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -247,11 +247,12 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     @Action( ACTION_CLOSE_APPOINTMENTDESK )
     public String docloseAppointmentDesk( HttpServletRequest request )
     {
-        JSONObject json = new JSONObject( );
-        String strJson = request.getParameter( PARAMETER_DATA );
         ObjectMapper mapper = new ObjectMapper( );
         mapper.registerModule( new JavaTimeModule( ) );
         mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+
+        ObjectNode json = mapper.createObjectNode();
+        String strJson = request.getParameter(PARAMETER_DATA);
         AppLogService.debug( "appointmentDesk - Received strJson : " + strJson );
 
         List<Slot> listSlots;
@@ -266,7 +267,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         {
 
             AppLogService.error( PROPERTY_MESSAGE_ERROR_PARSING_JSON + e.getMessage( ), e );
-            json.element( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_PARSING_JSON, getLocale( ) ) );
+            json.put( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_PARSING_JSON, getLocale( ) ) );
 
             return json.toString( );
         }
@@ -276,14 +277,14 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         {
             AppLogService.error( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM,
                     new AccessDeniedException( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM ) );
-            json.element( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_ACCESS_DENIED, getLocale( ) ) );
+            json.put( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_ACCESS_DENIED, getLocale( ) ) );
 
             return json.toString( );
         }
 
         AppointmentDeskService.closeAppointmentDesk( listSlots );
 
-        json.element( JSON_KEY_SUCCESS, JSON_KEY_SUCCESS );
+        json.put( JSON_KEY_SUCCESS, JSON_KEY_SUCCESS );
         return json.toString( );
 
     }
@@ -301,12 +302,13 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     @Action( ACTION_OPEN_APPOINTMENTDESK )
     public String doOpenAppointmentDesk( HttpServletRequest request )
     {
-        JSONObject json = new JSONObject( );
-        String strJson = request.getParameter( PARAMETER_DATA );
-        AppLogService.debug( "appointmentDesk - Received strJson : " + strJson );
         ObjectMapper mapper = new ObjectMapper( );
         mapper.registerModule( new JavaTimeModule( ) );
         mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+
+        ObjectNode json = mapper.createObjectNode();
+        String strJson = request.getParameter(PARAMETER_DATA);
+        AppLogService.debug( "appointmentDesk - Received strJson : " + strJson );
 
         List<Slot> listSlots;
         try
@@ -321,7 +323,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         {
 
             AppLogService.error( PROPERTY_MESSAGE_ERROR_PARSING_JSON + e.getMessage( ), e );
-            json.element( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_PARSING_JSON, getLocale( ) ) );
+            json.put( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_PARSING_JSON, getLocale( ) ) );
 
             return json.toString( );
         }
@@ -331,7 +333,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         {
             AppLogService.error( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM,
                     new AccessDeniedException( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM ) );
-            json.element( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_ACCESS_DENIED, getLocale( ) ) );
+            json.put( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_ACCESS_DENIED, getLocale( ) ) );
 
             return json.toString( );
 
@@ -339,7 +341,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
 
         AppointmentDeskService.openAppointmentDesk( listSlots, _nMaxCapacity );
 
-        json.element( JSON_KEY_SUCCESS, JSON_KEY_SUCCESS );
+        json.put( JSON_KEY_SUCCESS, JSON_KEY_SUCCESS );
         return json.toString( );
 
     }

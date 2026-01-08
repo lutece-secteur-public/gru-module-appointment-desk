@@ -38,7 +38,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import fr.paris.lutece.plugins.appointment.business.planning.ClosingDay;
 import fr.paris.lutece.plugins.appointment.business.slot.Slot;
