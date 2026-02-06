@@ -54,16 +54,15 @@ import fr.paris.lutece.plugins.appointment.web.dto.AppointmentFilterDTO;
 import fr.paris.lutece.plugins.appointment.web.dto.AppointmentFormDTO;
 import fr.paris.lutece.plugins.appointment.web.dto.CommentDTO;
 import fr.paris.lutece.portal.service.util.AppLogService;
-import fr.paris.lutece.portal.service.util.AppPropertiesService;
 import fr.paris.lutece.portal.service.admin.AccessDeniedException;
 import fr.paris.lutece.portal.service.i18n.I18nService;
 import fr.paris.lutece.portal.service.mailinglist.AdminMailingListService;
 import fr.paris.lutece.portal.service.plugin.Plugin;
-import fr.paris.lutece.portal.service.plugin.PluginService;
 import fr.paris.lutece.portal.service.rbac.RBACService;
 import fr.paris.lutece.portal.util.mvc.admin.annotations.Controller;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.Action;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.View;
+import fr.paris.lutece.portal.web.cdi.mvc.Models;
 import fr.paris.lutece.util.ReferenceList;
 import fr.paris.lutece.util.date.DateUtil;
 
@@ -73,30 +72,36 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.enterprise.context.SessionScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
  * This class provides the user interface to manage AppointmentDesk features ( manage, create, modify, remove )
  */
+@SessionScoped
+@Named
 @Controller( controllerJsp = "ManageAppointmentDesks.jsp", controllerPath = "jsp/admin/plugins/appointment/modules/desk/", right = AppointmentFormJspBean.RIGHT_MANAGEAPPOINTMENTFORM )
 public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
 {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -2761497602249048780L;
+
+    @Inject
+    private Models _models;
 
     // Templates
     private static final String TEMPLATE_MANAGE_APPOINTMENTDESKS = "/admin/plugins/appointment/modules/desk/manage_appointmentdesks.html";
@@ -199,7 +204,6 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
             appointmentDesk = slot.getMaxCapacity( );
 
         }
-        Map<String, Object> model = getModel( );
         java.sql.Date dateSqlDaey = java.sql.Date.valueOf( dateDay );
         List<CommentDTO> listComment = CommentService.buildCommentDTO( CommentService.findListCommentsInclusive( dateSqlDaey, dateSqlDaey, nIdForm ) );
 
@@ -211,27 +215,27 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         List<Appointment> listAppt = AppointmentService.findListAppointmentsByFilter( filter );
         _nMaxCapacity = appointmentDesk;
 
-        model.put( MARK_ACTIVATE_EDIT_MODE, activateEditMode );
-        model.put( MARK_CONTEXT, _strContext );
-        model.put( MARK_LIST_COMMENTS, listComment );
-        model.put( PARAMETER_NUMB_DESK, appointmentDesk );
-        model.put( MARK_LIST_SLOT, listSlot );
-        model.put( MARK_LIST_APPOINTMENT, listAppt );
-        model.put( MARK_LOCALE, getLocale( ) );
-        model.put( MARK_DATE_DAY, strDayDate );
-        model.put( MARK_ID_FORM, nIdForm );
-        model.put( MARK_FORM, form );
-        model.put( MARK_MACRO_LOCALE, getLocale( ) );
-        model.put( MARK_LIST_TYPE, getListTypes( ) );
-        model.put( MARK_MAILING_LIST, AdminMailingListService.getMailingLists( getUser( ) ) );
-        model.put( AppointmentUtilities.MARK_PERMISSION_ADD_COMMENT, String.valueOf(
+        _models.put( MARK_ACTIVATE_EDIT_MODE, activateEditMode );
+        _models.put( MARK_CONTEXT, _strContext );
+        _models.put( MARK_LIST_COMMENTS, listComment );
+        _models.put( PARAMETER_NUMB_DESK, appointmentDesk );
+        _models.put( MARK_LIST_SLOT, listSlot );
+        _models.put( MARK_LIST_APPOINTMENT, listAppt );
+        _models.put( MARK_LOCALE, getLocale( ) );
+        _models.put( MARK_DATE_DAY, strDayDate );
+        _models.put( MARK_ID_FORM, nIdForm );
+        _models.put( MARK_FORM, form );
+        _models.put( MARK_MACRO_LOCALE, getLocale( ) );
+        _models.put( MARK_LIST_TYPE, getListTypes( ) );
+        _models.put( MARK_MAILING_LIST, AdminMailingListService.getMailingLists( getUser( ) ) );
+        _models.put( AppointmentUtilities.MARK_PERMISSION_ADD_COMMENT, String.valueOf(
                 RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, strIdForm, AppointmentResourceIdService.PERMISSION_ADD_COMMENT_FORM, user ) ) );
-        model.put( AppointmentUtilities.MARK_PERMISSION_MODERATE_COMMENT, String.valueOf( RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, strIdForm,
+        _models.put( AppointmentUtilities.MARK_PERMISSION_MODERATE_COMMENT, String.valueOf( RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, strIdForm,
                 AppointmentResourceIdService.PERMISSION_MODERATE_COMMENT_FORM, user ) ) );
-        model.put( AppointmentUtilities.MARK_PERMISSION_ACCESS_CODE, user.getAccessCode( ) );
-        model.put( MARK_APPOINTMENT_DESK_ENABLED, ( moduleAppointmentDesk != null ) && moduleAppointmentDesk.isInstalled( ) );
+        _models.put( AppointmentUtilities.MARK_PERMISSION_ACCESS_CODE, user.getAccessCode( ) );
+        _models.put( MARK_APPOINTMENT_DESK_ENABLED, ( moduleAppointmentDesk != null ) && moduleAppointmentDesk.isInstalled( ) );
 
-        return getPage( PROPERTY_PAGE_TITLE_MANAGE_APPOINTMENTDESKS, TEMPLATE_MANAGE_APPOINTMENTDESKS, model );
+        return getPage( PROPERTY_PAGE_TITLE_MANAGE_APPOINTMENTDESKS, TEMPLATE_MANAGE_APPOINTMENTDESKS );
     }
 
     /**
@@ -253,7 +257,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
 
         ObjectNode json = mapper.createObjectNode();
         String strJson = request.getParameter(PARAMETER_DATA);
-        AppLogService.debug( "appointmentDesk - Received strJson : " + strJson );
+        AppLogService.debug( "appointmentDesk - Received strJson : {}", strJson );
 
         List<Slot> listSlots;
         try
@@ -266,7 +270,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         catch( JsonProcessingException e )
         {
 
-            AppLogService.error( PROPERTY_MESSAGE_ERROR_PARSING_JSON + e.getMessage( ), e );
+            AppLogService.error( "{}{}", PROPERTY_MESSAGE_ERROR_PARSING_JSON, e.getMessage( ), e );
             json.put( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_PARSING_JSON, getLocale( ) ) );
 
             return json.toString( );
@@ -308,7 +312,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
 
         ObjectNode json = mapper.createObjectNode();
         String strJson = request.getParameter(PARAMETER_DATA);
-        AppLogService.debug( "appointmentDesk - Received strJson : " + strJson );
+        AppLogService.debug( "appointmentDesk - Received strJson : {}", strJson );
 
         List<Slot> listSlots;
         try
@@ -322,7 +326,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         catch( JsonProcessingException e )
         {
 
-            AppLogService.error( PROPERTY_MESSAGE_ERROR_PARSING_JSON + e.getMessage( ), e );
+            AppLogService.error( "{}{}", PROPERTY_MESSAGE_ERROR_PARSING_JSON, e.getMessage( ), e );
             json.put( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_PARSING_JSON, getLocale( ) ) );
 
             return json.toString( );

@@ -37,8 +37,12 @@ import fr.paris.lutece.plugins.appointment.service.comment.IRedirectComment;
 import fr.paris.lutece.util.url.UrlItem;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
+import jakarta.servlet.http.HttpServletRequest;
 
+@ApplicationScoped
+@Named( "appointment.desk.redirectAppointmentDesk" )
 public class RedirectAppointmentDesk implements IRedirectComment {
 
     private static final String CODE_MANAGE_APPOINTEMENTS = "appointmentdesk";
