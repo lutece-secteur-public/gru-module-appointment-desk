@@ -100,7 +100,7 @@ public class AppointmentDeskService
             catch( Exception e )
             {
                 TransactionManager.rollBack( AppointmentDeskPlugin.getPlugin( ) );
-                AppLogService.error( "Error close appointment desk" + e.getMessage( ), e );
+                AppLogService.error( "Error close appointment desk {}", e.getMessage( ), e );
 
             }
             finally
@@ -165,7 +165,7 @@ public class AppointmentDeskService
                 catch( Exception e )
                 {
                     TransactionManager.rollBack( AppointmentDeskPlugin.getPlugin( ) );
-                    AppLogService.error( "Error open appointment desk" + e.getMessage( ), e );
+                    AppLogService.error( "Error open appointment desk {}", e.getMessage( ), e );
 
                 }
                 finally
