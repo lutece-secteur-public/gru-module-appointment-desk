@@ -1,326 +1,443 @@
-<link rel="stylesheet" href="css/admin/plugins/appointment/appointment_desk.css">
-<#if list_comments?size gt 3>
-<style>#selectable thead { height: ${list_comments?size*3}vh;}</style>
-</#if>
+<link rel="stylesheet" href="themes/shared/plugins/appointment/modules/desk/event-calendar.min.css" />
+<style>
+/* Comment events span full width in allDay row */
+#ec-calendar .ec-all-day .ec-event {
+	position: relative;
+	width: calc(var(--ec-grid-cols) * 100%) !important;
+	z-index: 1;
+}
+</style>
 <@appointmentTabs tab='day' form=appointmentForm context=context>
-	<div id="calendar" class="fc fc-ltr">
-		<div class="fc-toolbar fc-header-toolbar">
-			<div class="fc-left">
-				<@tform class='d-inline-block' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' method='get'>
-					<#assign dDay = day?date>
-					<#assign pDay = dDay?long - (1 * 24 * 60 * 60 * 1000)>
-					<@input type='hidden' name='id_form' value='${idForm!1}' />
-					<@input type='hidden' name='day' value='${pDay?number_to_date}' />
-					<@input type='hidden' name='context' value='${context}' />
-					<button type="submit" class="btn btn-primary btn-sm">#i18n{appointment.appointmentApp.previousDay}</button>
-				</@tform>
-			</div>
-			<div class="fc-right">
-				<@tform class='d-inline-block' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' method='get' class='hidden-xs'>
-					<#assign nDay = dDay?long + (1 * 24 * 60 * 60 * 1000)>
-					<@input type='hidden' name='id_form' value='${idForm!1}' />
-					<@input type='hidden' name='day' value='${nDay?number_to_date}' />
-					<@input type='hidden' name='context' value='${context}' />
-					<button type="submit" class="btn btn-primary btn-sm">#i18n{appointment.appointmentApp.nextDay}</button>
-				</@tform>
-			</div>
-			<div class="fc-center">
-				<#if day?date?string != .now?date?string >
-					<@tform  class='d-inline-block'name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' method='get'>
-						<#assign dDay = .now>
-						<@input type='hidden' name='id_form' value='${idForm!1}' />
-						<@input type='hidden' name='day' value='${dDay?date}' />
-						<@input type='hidden' name='context' value='${context}' />
-						<button type="submit" class="btn btn-primary btn-sm">#i18n{module.appointment.desk.label.today}</button>
-					</@tform>
-				</#if>
-				<@tform type='inline' id='manage_appointmentdesk' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' method='get'>
-					<@input type='hidden' name='id_form' value='${idForm!1}' />
-					<@input type='hidden' name='context' value='${context}' />
-					<button type="button" class="fc-datepicker btn btn-primary btn-sm">#i18n{appointment.appointmentCalendar.labelChooseDate}</button>
-					<input type='text' class='h2' name='day' id='day' value="${day!''}"  />
-				</@tform>
-			</div>
-		</div>
-		<#if list_slot?size gt 0>
-		<div class="fc-clear"></div>
-		<div class="fc-view-container ui-widget ">
-			<div class="fc-view fc-agendaWeek-view fc-agenda-view">
-			<@table id='selectable' class='clearfix' headBody=true>
-			<tr>
-				<th>
-				<#-- Check if day selected is less than today, if < 0 the add desk button is not displayed -->
-				<#assign isLteToday = (day?date?long / 86400000)?round - (.now?date?long / 86400000)?round + 1 />
-				<#if activateEditMode && isLteToday gte 0 >
-					<@button type='button' color='link' params=' data-bs-toggle="modal" data-bs-target="#deskModal"' title='#i18n{appointmentdesk.manage_appointmentdesks.label.addDesk}' hideTitle=[''] >
-						<@iconStack class='fa-1x'>
-							<@icon style='desktop' class='fa-stack-2x' />
-							<@icon style='plus mt-1' class='fa-stack-1x' />
-						</@iconStack>
-					</@button>
-				</#if>
-				</th>
-				<#assign x=numb_desk>
-				<#list 1..x as seq >
-					<th>#i18n{module.appointment.desk.label.desk} #i18n{module.appointment.desk.label.deskNo}${seq}</th>
-				</#list>
-				<th class="header-surbook bg-danger">#i18n{module.appointment.desk.label.surbooking}</th>
-			</tr>
-			<tr>
-				<td>
-				<#if permission_add_comment?boolean>
-					<@button id='toggle-add-comment' style='none' color='info mt-2 me-1' title='#i18n{appointment.create_comment.pageTitle}' params='data-bs-toggle="modal" data-bs-target="#commentModal" '  hideTitle=['']  >
-						<@iconStack class='fa-xs'>
-							<@icon prefix='' style='far fa-comment fa-stack-2x' />
-							<@icon prefix='' style='fas fa-plus fa-stack-1x' />
-						</@iconStack>
-					</@button>
-				</#if>
-				</td>
-				<td colspan="${x}">
-				<#if list_comments?size gt 0>
-					<#list list_comments as comment>
-						<#assign comment_class=''/>
-						<#if ( comment.startingValidityTime?? && comment.startingValidityTime == '00:00' && comment.endingValidityTime?? &&comment.endingValidityTime == '00:00' )>
-							<#assign comment_class=' allday'/>
-						</#if>
-						<#compress>
-							<#assign comment_title>${comment.comment?replace('\n', '')?replace('\r', '')?replace('\rn', '')?replace('\'', '&apos;')}</#assign>
-						</#compress>
-						<a class="fc-day-grid-event fc-h-event fc-event fc-start fc-end comments${comment_class!}" data-author="${comment.creatorUserName!}" id="comment-C${comment.id!}" data-json='{"id_comment":"C${comment.id}", "comment_text": "${comment_title!?json_string}", "start":"${comment.startingValidityDate!}", "comment_start":"${comment.startingValidityDate!}", "comment_start_time":"${comment.startingValidityTime!}", "start_time":"${comment.startingValidityTime!}", "comment_end":"${comment.endingValidityDate!}", "validity_end":"${comment.endingValidityDate!}", "comment_end_time":"${comment.endingValidityTime!}", "end_time":"${comment.endingValidityTime!}", "comment_creation_user":"${comment.userFirstName!} ${comment.userLastName!}", "comment_creation_date":"${comment.creationDate?date.xs!''}"}' style="cursor: pointer;">
-							<div class="fc-content">
-								<span class="fc-title">
-									<p>
-									<#if ( comment.startingValidityTime?? && comment.startingValidityTime != '00:00' && comment.endingValidityTime?? &&comment.endingValidityTime != '00:00' )>
-										${comment.startingValidityTime!}/${comment.endingValidityTime!}
-									</#if>
-									${comment_title!?remove_beginning('<p>')?remove_ending('</p>')?replace('\\\\"', '\\"')?replace('\\"', '\"')}
-									</p>
-								</span>
-							</div>
-						</a>
-					</#list>
-				</#if>
-				</td>
-				<td class="bg-danger"></td>
-			</tr>
-			<@tableHeadBodySeparator />
-			<#assign idx=1>
-			<#list list_slot?sort_by('startingDateTime') as slot>
-				<tr <#if idx=1>class="first"</#if>>
-					<td data-selectable="row" data-head-start="${slot.startingDateTime?datetime.iso?string["HH:mm"]}">${slot.startingTime!} </td>
-					<#setting datetime_format="iso">
-					<#list 1..x as seq >
-						<td class="${strClass!} place desk-${seq} slot-${slot.idSlot!} start-${slot.startingDateTime?datetime.iso?string["ddMM-HHmm"]} selectable <#if slot.isOpen && ( seq - slot.maxCapacity lte 0) >slot-open<#else>slot-close</#if>" data-start="${slot.startingDateTime!?datetime.iso?string["HHmm"]}" data-end="${slot.endingDateTime!?datetime.iso?string["HHmm"]}" data-marker=".desk-${seq}.slot-${slot.idSlot!}.start-${slot.startingDateTime?datetime.iso?string["ddMM-HHmm"]}" data-slot="{'idSlot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':'${slot.idForm!1}'}" ></td>
-					</#list>
-					<td class="desk-${x+1} start-${slot.startingDateTime?datetime.iso?string["ddMM-HHmm"]} bg-danger is-surbook" data-slot="" >
-				</tr>
-				<#assign idx=0>
-			</#list>
-		</@table>
-		</div>
-	</div>
-	<#else>
-		<@row>
-    		<@columns offsetSm=3 sm=4>
-				<@alert class='' color='warning'>
-				<p class="text-center">#i18n{module.appointment.desk.message.noDataAvailable} </p>
-				</@alert>
-			</@columns>
-		</@row>
-	</#if>
-</div>
+	<@messages errors=errors warnings=warnings infos=infos />
+	<@row>
+	<@columns lg=10 id='fc-calendar-col'>
+		<@div class='d-flex justify-content-end mb-2'>
+			<#if permission_add_comment?boolean>
+				<@button id='toggle-add-comment' color='secondary' size='sm' class='me-1' buttonIcon='message-plus' title='#i18n{appointment.create_comment.pageTitle}' hideTitle=['xs','sm'] params='data-bs-toggle="offcanvas" data-bs-target="#commentModal"' />
+			</#if>
+			<@button type='button' id='btn-add-desk' color='secondary' size='sm' buttonIcon='desktop' title='#i18n{appointmentdesk.manage_appointmentdesks.buttonAdd}' params='data-bs-toggle="offcanvas" data-bs-target="#deskModal"' />
+		</@div>
+		<@div id='ec-calendar'></@div>
+	</@columns>
+	<@columns lg=2 class='d-none d-lg-block' id='fc-sidebar-col'>
+		<@div id='mini-calendar' class='sticky-top' params='style="top:80px"' />
+	</@columns>
+	</@row>
 </@appointmentTabs>
+
 <@modal id='qModal'>
 	<@modalBody>
-		<p id="loader" class="text-center">
-			<i class="fa fa-circle-o-notch fa-spin fa-5x fa-fw"></i>
-			<span class="sr-only">#i18n{module.appointment.desk.message.labelLoading}</span>
-		</p>
-		<iframe style="width:100%;height:60vh;border:0" frameborder="0" id="qModalFrame" src=""></iframe>
+		<@p id='loader' class='text-center'>
+			<@icon style='loader' class='fa-spin fa-5x' />
+			<@span class='sr-only'>#i18n{module.appointment.desk.message.labelLoading}</@span>
+		</@p>
+		<iframe style="width:100%;height:60vh;border:0" frameborder="0" id="qModalFrame" src="" title="#i18n{module.appointment.desk.message.labelLoading}"></iframe>
 	</@modalBody>
 </@modal>
+
 <@modal id='slottoggle' size='sm'>
 	<@modalBody>
-	<div style="margin-left:25%">
-		<@radioButton id='doOpenSlot' name='doManageSlot' value='1' labelFor='doOpenSlot' labelKey='#i18n{module.appointment.desk.label.open}' />
-		<@radioButton id='doCloseSlot' name='doManageSlot'  value='0' labelFor='doCloseSlot' labelKey='#i18n{module.appointment.desk.label.close}' />
-	</div>
-	<div style="text-align: center;">
-		<@button id='saveSlotState' color='primary' title='#i18n{module.appointment.desk.label.save}' />
-		<@button id='cancelSlotState' color='secondary' title='#i18n{module.appointment.desk.label.cancel}' params='data-bs-dismiss="modal" aria-label="#i18n{module.appointment.desk.label.cancel}"' />
-	</div>
+		<@div class='ms-3'>
+			<@radioButton id='doOpenSlot' name='doManageSlot' value='1' labelKey='#i18n{module.appointment.desk.label.open}' />
+			<@radioButton id='doCloseSlot' name='doManageSlot' value='0' labelKey='#i18n{module.appointment.desk.label.close}' />
+		</@div>
+		<@div class='text-center'>
+			<@button id='saveSlotState' color='primary' title='#i18n{module.appointment.desk.label.save}' />
+			<@button id='cancelSlotState' color='secondary' title='#i18n{module.appointment.desk.label.cancel}' params='data-bs-dismiss="modal" aria-label="#i18n{module.appointment.desk.label.cancel}"' />
+		</@div>
 	</@modalBody>
 </@modal>
+
 <#if activateEditMode>
-<@modal id='deskModal'>
-	<@modalHeader modalTitle='#i18n{module.appointment.desk.increment.defaultTitle}' />
-	<@modalBody>
-		<p class="text-center">#i18n{module.appointment.desk.increment.defaultTitle}</p>
-		<@tform id='form-validate' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' params='enctype="multipart/form-data"'>
-			<@input type='hidden' name='action' value='incrementMaxCapacity' />
-			<@input type='hidden' name='id_form' value='${idForm!}' />
-			<@input type='hidden' id='day' name='day' value='${day!}' />
-			<@formGroup labelFor='incrementing_value' labelKey='#i18n{module.appointment.desk.increment.labelIncrementingValue}' helpKey='${formGroupHelpKey!}' mandatory=true>
-				<@input type='number' name='incrementing_value' id='incrementing_value' value='1' maxlength=2 params='onkeypress="return validateQty(event);"' min=1 max=10 />
-			</@formGroup>
-			<@formGroup labelFor='type' labelKey='#i18n{module.appointment.desk.increment.labelType}'>
-				<@select name='type' id='type' items=list_types default_value='' />
-			</@formGroup>
-			<@formGroup labelFor='startingDate' labelKey='#i18n{module.appointment.desk.increment.labelStartingDate}'>
-				<@inputGroup>
-					<@input type='text' name='starting_date' id='startingDate' value="${day!}" />
-					<@inputGroupItem type='text'>
-						<@icon style='calendar' />
-					</@inputGroupItem>
-				</@inputGroup>
-			</@formGroup>
-			<@formGroup labelFor='startingTime' labelKey='#i18n{module.appointment.desk.increment.labelStartingTime}'>
-				<@inputGroup>
-					<@input type='text' name='starting_time' id='startingTime' value='' />
-					<@inputGroupItem type='text'>
-						<@icon style='clock' />
-					</@inputGroupItem>
-				</@inputGroup>
-			</@formGroup>
-			<@formGroup labelFor='endingDate' labelKey='#i18n{module.appointment.desk.increment.labelEndingDate}'>
-				<@inputGroup>
-					<@input type='text' name='ending_date' id='endingDate' value="${day!}" />
-					<@inputGroupItem type='text'>
-						<@icon style='calendar' />
-					</@inputGroupItem>
-				</@inputGroup>
-			</@formGroup>
-			<@formGroup labelFor='endingTime' labelKey='#i18n{module.appointment.desk.increment.labelEndingTime}'>
-				<@inputGroup>
-					<@input type='text' name='ending_time' id='endingTime' value='' />
-					<@inputGroupItem type='text'>
-						<@icon style='clock' />
-					</@inputGroupItem>
-				</@inputGroup>
-			</@formGroup>
-			<@formGroup>
-				<@button type='submit' name='save' id='save' buttonIcon='check' title='#i18n{module.appointment.desk.increment.labelValidate}' />
-			</@formGroup>
-		</@tform>
-	</@modalBody>
-</@modal>
+<@offcanvas id='deskModal' title='#i18n{module.appointment.desk.increment.defaultTitle}' btnTitle='' btnIcon='' btnClass='visually-hidden' position='end' size='sm'>
+	<@tform id='form-validate' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' enctype='multipart/form-data'>
+		<@input type='hidden' name='action' value='incrementMaxCapacity' />
+		<@input type='hidden' name='id_form' value='${idForm!}' />
+		<@input type='hidden' id='day' name='day' value='${day!}' />
+		<@formGroup labelFor='incrementing_value' labelKey='#i18n{module.appointment.desk.increment.labelIncrementingValue}' helpKey='${formGroupHelpKey!}' mandatory=true>
+			<@input type='number' name='incrementing_value' id='incrementing_value' value='1' maxlength=2 params='onkeypress="return validateQty(event);"' min=1 max=10 />
+		</@formGroup>
+		<@formGroup labelFor='type' labelKey='#i18n{module.appointment.desk.increment.labelType}'>
+			<@select name='type' id='type' items=list_types default_value='' />
+		</@formGroup>
+		<@formGroup labelFor='startingDate' labelKey='#i18n{module.appointment.desk.increment.labelStartingDate}'>
+			<@input type='text' name='starting_date' id='startingDate' value='${day!}' />
+		</@formGroup>
+		<@formGroup labelFor='startingTime' labelKey='#i18n{module.appointment.desk.increment.labelStartingTime}'>
+			<@input type='text' name='starting_time' id='startingTime' value='' />
+		</@formGroup>
+		<@formGroup labelFor='endingDate' labelKey='#i18n{module.appointment.desk.increment.labelEndingDate}'>
+			<@input type='text' name='ending_date' id='endingDate' value='${day!}' />
+		</@formGroup>
+		<@formGroup labelFor='endingTime' labelKey='#i18n{module.appointment.desk.increment.labelEndingTime}'>
+			<@input type='text' name='ending_time' id='endingTime' value='' />
+		</@formGroup>
+		<@formGroup>
+			<@button type='submit' name='save' id='save' buttonIcon='check' title='#i18n{module.appointment.desk.increment.labelValidate}' />
+		</@formGroup>
+	</@tform>
+</@offcanvas>
 </#if>
 <@getCommentModal 'commentModal' '#i18n{appointment.create_comment.pageTitle}' "comment" "startingValidityDate" "endingValidityDate" "idStartingTime" "idEndingTime" "doAddComment" idForm mailing_list locale "appointmentdesk" '${context!}-${day!}' />
-<@getCommentModal 'modify-comment' '#i18n{appointment.modify_comment.pageTitle}' "comment" "modifyStartingValidityDate" "modifyEndingValidityDate" "idModifyStartingTime" "idModifyEndingTime" "doModifyComment" idForm mailing_list locale "appointmentdesk" '${context!}-${day!}' />
-
-<#if activateEditMode>
-<script src="js/admin/plugins/appointment/selectable.min.js"></script>
-<script src="js/admin/plugins/appointment/selectable.table.min.js"></script>
-</#if>
-<script src="js/admin/plugins/appointment/appointment_desk.js"></script>
-<script src="js/admin/plugins/appointment/locales/bootstrap-datepicker.${language}.js" ></script>
+<@getCommentModal 'modify-comment' '#i18n{appointment.modify_comment.pageTitle}' "modifyComment" "modifyStartingValidityDate" "modifyEndingValidityDate" "idModifyStartingTime" "idModifyEndingTime" "doModifyComment" idForm mailing_list locale "appointmentdesk" '${context!}-${day!}' />
+<script src="themes/shared/plugins/appointment/modules/desk/event-calendar.min.js"></script>
+<script src="themes/shared/plugins/appointment/modules/desk/appointment_desk.js"></script>
 <script>
-$(function () {
-	<#if activateEditMode>
-		/* Add selectable function to table cell */
-		setSelection();
+document.addEventListener('DOMContentLoaded', function() {
+	const currentDayLocale = '${day!}';
+	/* Convert locale date (dd/MM/yyyy) to ISO (yyyy-MM-dd), fallback to today */
+	const currentDay = (function(d) {
+		if (!d) {
+			var now = new Date();
+			return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+		}
+		var parts = d.split('/');
+		if (parts.length === 3 && parts[2].length === 4) return parts[2] + '-' + parts[1] + '-' + parts[0];
+		/* Already ISO? */
+		if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+		/* Fallback to today */
+		var now = new Date();
+		return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+	})(currentDayLocale);
+	const idForm = '${idForm!1}';
+	const context = '${context!}';
+	const nDesks = Math.max(${numb_desk!0}, 1);
+	/* Compute min/max time from slots */
+	const slotTimes = [
+	<#if list_slot?has_content>
+		<#list list_slot?sort_by('startingDateTime') as slot>
+		{ start: '${slot.startingDateTime?datetime.iso?string["HH:mm"]}', end: '${slot.endingDateTime?datetime.iso?string["HH:mm"]}' },
+		</#list>
 	</#if>
-	$('#day').datepicker({
-		language : '${language}',
-		weekStart : 1,
-		todayBtn : true,
-		todayHighLight : true,
-		autoclose : true
-	}).on( 'changeDate', function(e) {
-		$('#manage_appointmentdesk').submit();
-	});
+	];
+	let minTime = '08:00', maxTime = '18:00';
+	if (slotTimes.length > 0) {
+		minTime = slotTimes.reduce(function(m, s) { return s.start < m ? s.start : m; }, '23:59');
+		maxTime = slotTimes.reduce(function(m, s) { return s.end > m ? s.end : m; }, '00:00');
+	}
+	const locale = '${language!}';
+	const isMultiSlot = ${appointmentForm.isMultislotAppointment!?c};
+	const activateEditMode = <#if activateEditMode>true<#else>false</#if>;
+	const appUrlDetail = 'jsp/admin/plugins/appointment/ManageAppointments.jsp?view=viewAppointment&id_form=' + idForm + '&id_appointment=';
+	const navUrl = 'jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp';
 
-	$('.fc-datepicker').click( function(){
-		$('#day').datepicker('show');
-	});
+	/* Build resources: 1 per desk + 1 surbook */
+	const resources = [];
+	for (let i = 1; i <= nDesks; i++) {
+		resources.push({ id: 'desk-' + i, title: '#i18n{module.appointment.desk.label.desk} ' + i });
+	}
+	resources.push({ id: 'surbook', title: '#i18n{module.appointment.desk.label.surbooking}' });
 
-	$('#qModal').on('shown.bs.modal', function () {
-		$('#qModalFrame').attr("src", urlPublished );
-		$('#qModalFrame').load( function () {
-		$('#qModalFrame').show();
-		$('#loader').hide();
+	/* Build background events for slots (open/closed) */
+	const slotEvents = [
+	<#if list_slot?has_content>
+		<#list list_slot?sort_by('startingDateTime') as slot>
+			<#list 1..numb_desk as seq>
+		{
+			start: '${slot.startingDateTime}',
+			end: '${slot.endingDateTime}',
+			resourceIds: ['desk-${seq}'],
+			display: 'background',
+			color: <#if slot.isOpen && (seq <= slot.maxCapacity)>'rgba(25, 135, 84, 0.4)'<#else>'rgba(220, 53, 69, 0.4)'</#if>,
+			extendedProps: {
+				idSlot: ${slot.idSlot!0},
+				maxCapacity: ${slot.maxCapacity},
+				isOpen: <#if slot.isOpen && (seq <= slot.maxCapacity)>true<#else>false</#if>,
+				isSpecific: ${slot.isSpecific?c},
+				idForm: ${slot.idForm!1},
+				desk: ${seq}
+			}
+		},
+			</#list>
+		</#list>
+	</#if>
+	];
+
+	/* Build appointment events */
+	const appointmentEvents = [];
+	const appointments = [<#list list_appointment?sort_by('appointmentTakenSqlDate')?reverse?sort_by('nbPlaces')?reverse as app><#compress>{"id":${app.idAppointment},"lastName":"${app.user.lastName?js_string}","firstName":"${app.user.firstName?js_string}","places":${app.nbPlaces},"slots":[<#list app.slot?sort_by('startingDateTime') as slot>{"id":${slot.idSlot},"start":"${slot.startingDateTime}","end":"${slot.endingDateTime}"},</#list>]},</#compress></#list>];
+
+	/* Check if a desk is open for a given slot start time */
+	function isDeskOpen(deskNum, slotStart) {
+		const slotMs = new Date(slotStart).getTime();
+		return slotEvents.some(function(ev) {
+			return ev.extendedProps && ev.extendedProps.desk === deskNum
+				&& ev.extendedProps.isOpen && new Date(ev.start).getTime() === slotMs;
 		});
-	});
-	<#if activateEditMode>
-	// DESK ADD MODAL
-	$('#startingTime').datetimepicker({
-		format: 'HH:mm',
-		stepping: 14
-	});
+	}
 
-	$('#endingTime').datetimepicker({
-		format: 'HH:mm',
-		stepping: 1
-	});
+	/* Assign appointments to desks (only open desks) */
+	const deskOccupancy = {};
+	function getOccupancyKey(deskId, start) { return deskId + '|' + start; }
+	function isDeskFree(deskId, start) { return !deskOccupancy[getOccupancyKey(deskId, start)]; }
+	function markDesk(deskId, start) { deskOccupancy[getOccupancyKey(deskId, start)] = true; }
 
-	$('#startingDate').datepicker({
-		language : "${language}",
-		weekStart : 1,
-		todayBtn : true,
-		todayHighLight : true,
-		autoclose : true
-	}).on( 'changeDate', function(e) {
-		$('#deskModal #day').val( $(this).val() );
-	});
-
-	$('#endingDate').datepicker({
-		language : "${language}",
-		weekStart : 1,
-		todayBtn : true,
-		todayHighLight : true,
-		autoclose : true
-	});
-	</#if>
-
-	$('.comments').each( function(){
-		moment.locale("${language}");
-		var json = { "container": "body", "placement" : "bottom", "html" : true, "trigger" : "hover" };
-		var event = JSON.parse( $(this).attr( 'data-json') ), labelEventDate='';
-
-		/* Add comment render */
-		labelEventDate=setLabelComment( event );
-
-		json.content = '<p>' + labelEventDate +'</p><p>Créé par <em>' + event.comment_creation_user + '</em> le <date>' + event.comment_creation_date + '</date></p><hr><p>' + event.comment_text + '</p>';
-		const popover = new bootstrap.Popover( this, json )
-
-		// Set comments backgrounds
-		var cDay=$('#day').val()
-		setCommentsBg( event, cDay, '${language}' );
-	});
-
-	// Manage Hour Comments highlight
-	$('.fa-comment').hover( function(){
-		hourComment( $(this), true )
-		return false;
-	}, function(){
-		hourComment( $(this), false )
-	});
-
-	var isCommentModerator=${permission_moderate_comment};
-	$('.comments').click(function(e) {
-		if( $(this).data('author') === '${permission_access_code}' || isCommentModerator ){
-			<@commentModal update=true />
+	appointments.forEach(function(app) {
+		let assigned = false;
+		for (let d = 1; d <= nDesks && !assigned; d++) {
+			const deskId = 'desk-' + d;
+			let allFreeAndOpen = true;
+			app.slots.forEach(function(s) {
+				if (!isDeskFree(deskId, s.start) || !isDeskOpen(d, s.start)) allFreeAndOpen = false;
+			});
+			if (allFreeAndOpen) {
+				app.slots.forEach(function(s) {
+					markDesk(deskId, s.start);
+					appointmentEvents.push({
+						id: 'app-' + app.id + '-' + s.id,
+						start: s.start,
+						end: s.end,
+						resourceIds: [deskId],
+						title: app.lastName + ' ' + app.firstName + (app.places > 1 ? ' (' + app.places + ')' : ''),
+						color: 'var(--bs-primary, #0d6efd)',
+						extendedProps: { appId: app.id, url: appUrlDetail + app.id }
+					});
+				});
+				assigned = true;
+			}
+		}
+		if (!assigned) {
+			/* Surbook — desk fermé ou tous occupés */
+			app.slots.forEach(function(s) {
+				appointmentEvents.push({
+					id: 'app-' + app.id + '-' + s.id,
+					start: s.start,
+					end: s.end,
+					resourceIds: ['surbook'],
+					title: app.lastName + ' ' + app.firstName,
+					color: 'var(--bs-danger, #dc3545)',
+					extendedProps: { appId: app.id, url: appUrlDetail + app.id }
+				});
+			});
 		}
 	});
 
-	/* Show udpates by highlighting  */
-	slotChangeHighlight()
+	/* Comment events (allDay) */
+	const commentEvents = [];
+	<#if list_comments?has_content>
+	<#list list_comments as comment>
+	<#compress><#assign comment_title>${comment.comment?replace('\n', '')?replace('\r', '')?replace('\rn', '')?replace('\'', '&apos;')}</#assign></#compress>
+	commentEvents.push({
+		id: 'comment-${comment.id!}',
+		start: currentDay,
+		end: currentDay,
+		resourceIds: [resources[0].id],
+		title: '${comment_title!?json_string}',
+		allDay: true,
+		color: 'rgba(233, 250, 0, 0.8)',
+		textColor: '#856404',
+		extendedProps: {
+			type: 'comment',
+			author: '${comment.creatorUserName!}',
+			data: '{"id_comment":"C${comment.id}", "comment_text": "${comment_title!?json_string}", "comment_start":"${comment.startingValidityDate!}", "comment_start_time":"${comment.startingValidityTime!}", "comment_end":"${comment.endingValidityDate!}", "comment_end_time":"${comment.endingValidityTime!}", "comment_creation_user":"${comment.userFirstName!} ${comment.userLastName!}", "comment_creation_date":"${comment.creationDate?date.xs!}"}'
+		}
+	});
+	</#list>
+	</#if>
+
+	const allEvents = slotEvents.concat(appointmentEvents).concat(commentEvents);
+
+	const labelClosed = '#i18n{module.appointment.desk.label.close}';
+	const labelOpen = '#i18n{module.appointment.desk.label.open}';
+
+	/* Open/close slot toggle modal */
+	function toISO(d) {
+		if (typeof d === 'string') return d;
+		return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+			+ 'T' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ':00';
+	}
+
+	function openSlotToggleModal(selStart, selEnd, resourceId, currentIsOpen) {
+		const selStartStr = toISO(selStart);
+		const selEndStr = toISO(selEnd);
+
+		/* Find reference slots (desk-1) whose start falls within [selStart, selEnd) */
+		const selStartMs = new Date(selStartStr).getTime();
+		const selEndMs = new Date(selEndStr).getTime();
+		const refSlots = slotEvents.filter(function(ev) {
+			if (!ev.extendedProps || ev.extendedProps.desk !== 1) return false;
+			const evStartMs = new Date(ev.start).getTime();
+			return evStartMs >= selStartMs && evStartMs < selEndMs;
+		});
+		if (refSlots.length === 0) return;
+
+		/* Pre-select radio: if any slot has open desks, suggest close */
+		const anyOpen = refSlots.some(function(s) { return s.extendedProps.maxCapacity > 0 && s.extendedProps.isOpen; });
+		if (anyOpen) {
+			document.getElementById('doCloseSlot').checked = true;
+		} else {
+			document.getElementById('doOpenSlot').checked = true;
+		}
+
+		const modalEl = document.getElementById('slottoggle');
+		const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+		modal.show();
+
+		document.getElementById('saveSlotState').addEventListener('click', function onClick() {
+			document.getElementById('saveSlotState').removeEventListener('click', onClick);
+			const doOpen = document.querySelector('#slottoggle .modal-body input:checked').value == 1;
+			const action = doOpen ? 'openAppointmentDesk' : 'closeAppointmentDesk';
+
+			/* For each slot in range: adjust maxCapacity by +1 (open) or -1 (close) */
+			const slotsToUpdate = refSlots.map(function(ev) {
+				const ep = ev.extendedProps;
+				const newCapacity = doOpen
+					? Math.min(ep.maxCapacity + 1, nDesks)
+					: Math.max(ep.maxCapacity - 1, 0);
+				return {
+					idSlot: ep.idSlot,
+					startingDateTime: ev.start,
+					endingDateTime: ev.end,
+					maxCapacity: newCapacity,
+					isOpen: newCapacity > 0 ? 'true' : 'false',
+					isSpecific: String(ep.isSpecific),
+					idForm: String(ep.idForm)
+				};
+			});
+
+			if (slotsToUpdate.length === 0) { modal.hide(); return; }
+
+			fetch(navUrl, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+				body: 'action=' + action + '&data=' + encodeURIComponent(JSON.stringify(slotsToUpdate)),
+				credentials: 'same-origin'
+			}).finally(function() {
+				modal.hide();
+				window.location.href = navUrl + '?id_form=' + idForm + '&day=' + currentDay + '&context=' + context;
+			});
+		}, { once: true });
+	}
+
+	/* Init Event Calendar */
+	const ecEl = document.getElementById('ec-calendar');
+	const ec = EventCalendar.create(ecEl, {
+		view: 'resourceTimeGridDay',
+		date: currentDay,
+		locale: locale,
+		slotMinTime: minTime,
+		slotMaxTime: maxTime,
+		slotDuration: '00:${appointmentForm.durationAppointments!30}:00',
+		allDaySlot: true,
+		headerToolbar: {
+			start: 'prev',
+			center: 'title',
+			end: 'today next'
+		},
+		buttonText: {
+			today: "#i18n{appointment.appointmentCalendar.labelToday}"
+			// today: 'Today'
+		},
+		resources: resources,
+		events: allEvents,
+		eventContent: function(info) {
+			const ep = info.event.extendedProps || {};
+			if (ep.type === 'comment') {
+				return { html: '<div class="ec-event-title" style="overflow:hidden;text-overflow:ellipsis">' + info.event.title + '</div>' };
+			}
+			return { html: '<div class="ec-event-title">' + (info.event.title || '') + '</div>' };
+		},
+		eventClick: function(info) {
+			const ep = info.event.extendedProps;
+			if (ep.type === 'comment') {
+				/* Comment click — edit/delete */
+				const isCommentModerator = ${permission_moderate_comment};
+				if (ep.author === '${permission_access_code}' || isCommentModerator) {
+					const formValues = JSON.parse(ep.data);
+					const modifyOffcanvasEl = document.getElementById('modify-comment');
+					const commentOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(modifyOffcanvasEl);
+
+					modifyOffcanvasEl.addEventListener('shown.bs.offcanvas', function onShown() {
+						modifyOffcanvasEl.removeEventListener('shown.bs.offcanvas', onShown);
+
+						/* Set comment id */
+						document.querySelector('#modify-comment input[name="id_comment"]').value = formValues.id_comment.slice(1);
+
+						/* Set comment text in textarea + TinyMCE */
+						const ta = document.getElementById('modifyComment');
+						if (ta) { ta.value = formValues.comment_text; }
+						const waitEditor = setInterval(function() {
+							const mcEditor = tinyMCE.get('modifyComment');
+							if (mcEditor) {
+								clearInterval(waitEditor);
+								mcEditor.setContent(formValues.comment_text);
+							}
+						}, 50);
+
+						/* Set dates/times via Flatpickr API */
+						function fpSet(el, val) {
+							if (el && el._flatpickr) { el._flatpickr.setDate(val, true); }
+							else if (el) { el.value = val; }
+						}
+						fpSet(document.getElementById('modifyStartingValidityDate'), formValues.comment_start);
+						fpSet(document.getElementById('modifyEndingValidityDate'), formValues.comment_end);
+						fpSet(document.getElementById('idModifyStartingTime'), formValues.comment_start_time);
+						fpSet(document.getElementById('idModifyEndingTime'), formValues.comment_end_time);
+					});
+
+					commentOffcanvas.show();
+				}
+			} else if (ep.url) {
+				/* Appointment click — open detail */
+				window.open(ep.url, '_blank');
+			}
+		},
+		dateClick: function(info) {
+			var clickedDay = info.date.getFullYear() + '-' + String(info.date.getMonth() + 1).padStart(2, '0') + '-' + String(info.date.getDate()).padStart(2, '0');
+			if (clickedDay !== currentDay) {
+				window.location.href = navUrl + '?id_form=' + idForm + '&day=' + clickedDay + '&context=' + context;
+			}
+		},
+		<#if activateEditMode>
+		selectable: true,
+		select: function(info) {
+			if (info.resource) {
+				openSlotToggleModal(info.start, info.end, info.resource.id, null);
+			}
+		},
+		</#if>
+	});
+
+
+	<#if activateEditMode>
+	/* Sync startingDate change to hidden day field in deskModal */
+	const startingDateEl = document.getElementById('startingDate');
+	if (startingDateEl) {
+		startingDateEl.addEventListener('change', function() {
+			const deskDayEl = document.querySelector('#deskModal #day');
+			if (deskDayEl) { deskDayEl.value = startingDateEl.value; }
+		});
+	}
+	</#if>
+
+	/* Intercept EC toolbar prev/next/today buttons to reload with new date */
+	function addDayOffset(isoDate, offset) {
+		const d = new Date(isoDate + 'T12:00:00');
+		d.setDate(d.getDate() + offset);
+		return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+	}
+	requestAnimationFrame(function() {
+		ecEl.querySelectorAll('.ec-button').forEach(function(btn) {
+			btn.addEventListener('click', function(e) {
+				e.stopImmediatePropagation();
+				e.preventDefault();
+				const text = btn.textContent.trim().toLowerCase();
+				let newDay = currentDay;
+				if (btn.classList.contains('ec-prev')) {
+					newDay = addDayOffset(currentDay, -1);
+				} else if (btn.classList.contains('ec-next')) {
+					newDay = addDayOffset(currentDay, 1);
+				} else if (btn.classList.contains('ec-today')) {
+					const now = new Date();
+					newDay = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+				} else {
+					return;
+				}
+				window.location.href = navUrl + '?id_form=' + idForm + '&day=' + newDay + '&context=' + context;
+			}, true);
+		});
+	});
 });
-
-/* Get appointment list to set in day view */
-const appointments = [<#list list_appointment?sort_by('appointmentTakenSqlDate')?reverse?sort_by('nbPlaces')?reverse as app>
-<#compress>
-{"id":"${app.idAppointment}","lastName" : "${app.user.lastName}","firstName" : "${app.user.firstName}","places": ${app.nbPlaces},"slots":[<#list app.slot?sort_by('startingDateTime') as slot>{"id" : "${slot.idSlot}", "start" : "${slot.startingDateTime!?datetime.iso?string["ddMM-HHmm"]}", },</#list>],},
-</#compress>
-</#list>];
-
-/* Begin set RDV 		*/
-const nDesks=${numb_desk+1}, isMultiSlot=${appointmentForm.isMultislotAppointment?c}, appUrlDetail='jsp/admin/plugins/appointment/ManageAppointments.jsp?view=viewAppointment&id_form=${idForm!}&id_appointment=';
-
-/* Add RDV in day view  */
-setDayView( appointments );
-document.getElementById('loader').remove();
 </script>
 <#include "/admin/util/editor/editor.html" />
 <@initEditor type='comment' />
