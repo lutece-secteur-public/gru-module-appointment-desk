@@ -120,7 +120,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String PARAMETER_INCREMENTING_VALUE = "incrementing_value";
     private static final String PARAMETER_TYPE = "type";
     // Properties for page titles
-    private static final String PROPERTY_PAGE_TITLE_MANAGE_APPOINTMENTDESKS = "appointment-desk.manage_appointmentdesks.pageTitle";
+    private static final String PROPERTY_PAGE_TITLE_MANAGE_APPOINTMENTDESKS = "appointmentdesk.manage_appointmentdesks.pageTitle";
 
     // Markers
     private static final String MARK_LOCALE = "language";
@@ -188,7 +188,22 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         if ( StringUtils.isNotEmpty( strDayDate ) )
         {
             Date dateofDay = DateUtil.formatDate( strDayDate, getLocale( ) );
-            dateDay = dateofDay.toInstant( ).atZone( ZoneId.systemDefault( ) ).toLocalDate( );
+            if ( dateofDay != null )
+            {
+                dateDay = dateofDay.toInstant( ).atZone( ZoneId.systemDefault( ) ).toLocalDate( );
+            }
+            else
+            {
+                try
+                {
+                    dateDay = LocalDate.parse( strDayDate );
+                }
+                catch( Exception e )
+                {
+                    dateDay = LocalDate.now( );
+                }
+                strDayDate = DateUtil.getDateString( Date.from( dateDay.atStartOfDay( ).atZone( ZoneId.systemDefault( ) ).toInstant( ) ), getLocale( ) );
+            }
         }
         else
         {
@@ -257,6 +272,16 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
 
         ObjectNode json = mapper.createObjectNode();
         String strJson = request.getParameter(PARAMETER_DATA);
+        if ( strJson != null )
+        {
+            String strPrevious;
+            do
+            {
+                strPrevious = strJson;
+                strJson = org.apache.commons.text.StringEscapeUtils.unescapeHtml4( strJson );
+            }
+            while ( !strJson.equals( strPrevious ) );
+        }
         AppLogService.debug( "appointmentDesk - Received strJson : {}", strJson );
 
         List<Slot> listSlots;
@@ -312,6 +337,16 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
 
         ObjectNode json = mapper.createObjectNode();
         String strJson = request.getParameter(PARAMETER_DATA);
+        if ( strJson != null )
+        {
+            String strPrevious;
+            do
+            {
+                strPrevious = strJson;
+                strJson = org.apache.commons.text.StringEscapeUtils.unescapeHtml4( strJson );
+            }
+            while ( !strJson.equals( strPrevious ) );
+        }
         AppLogService.debug( "appointmentDesk - Received strJson : {}", strJson );
 
         List<Slot> listSlots;
