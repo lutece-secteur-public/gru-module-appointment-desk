@@ -43,8 +43,6 @@
     </dependencies>
      <properties>
         <componentName>appointmentdesk</componentName>
-        <jiraProjectName>MAPPTDESK</jiraProjectName>
-        <jiraComponentId />
     </properties>
     <scm>
         <connection>scm:git:https://github.com/lutece-secteur-public/gru-module-appointment-desk.git</connection>
