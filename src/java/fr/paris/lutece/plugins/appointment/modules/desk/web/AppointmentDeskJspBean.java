@@ -120,7 +120,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String PARAMETER_INCREMENTING_VALUE = "incrementing_value";
     private static final String PARAMETER_TYPE = "type";
     // Properties for page titles
-    private static final String PROPERTY_PAGE_TITLE_MANAGE_APPOINTMENTDESKS = "appointmentdesk.manage_appointmentdesks.pageTitle";
+    private static final String PROPERTY_PAGE_TITLE_MANAGE_APPOINTMENTDESKS = "module.appointment.desk.manage_appointmentdesks.pageTitle";
 
     // Markers
     private static final String MARK_LOCALE = "language";
