@@ -174,7 +174,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         int nIdForm = Integer.parseInt( strIdForm );
         String strDayDate = request.getParameter( PARAMETER_DATE_DAY );
         String strContext = request.getParameter( PARAMETER_CONTEXT );
-        _strContext = ( StringUtils.isNotEmpty( strContext ) ) ? strContext : _strContext;
+        _strContext = StringUtils.isNotEmpty( strContext ) ? strContext : StringUtils.defaultString( _strContext );
         boolean activateEditMode = true;
         LocalDate dateDay = null;
         User user = getUser( );
