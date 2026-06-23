@@ -36,20 +36,17 @@ package fr.paris.lutece.plugins.appointment.modules.desk.service;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 
 import org.apache.commons.lang3.StringUtils;
 
 import fr.paris.lutece.plugins.appointment.business.planning.ClosingDay;
 import fr.paris.lutece.plugins.appointment.business.slot.Slot;
-import fr.paris.lutece.plugins.appointment.modules.desk.util.AppointmentDeskPlugin;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.IncrementSlot;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.IncrementingType;
 import fr.paris.lutece.plugins.appointment.service.ClosingDayService;
 import fr.paris.lutece.plugins.appointment.service.SlotSafeService;
 import fr.paris.lutece.plugins.appointment.service.SlotService;
 import fr.paris.lutece.portal.service.util.AppLogService;
-import fr.paris.lutece.util.sql.TransactionManager;
 
 public class AppointmentDeskService
 {
@@ -65,48 +62,25 @@ public class AppointmentDeskService
         for ( Slot slot : listSlot )
         {
 
-            if ( slot.getIdSlot( ) == 0 )
-            {
-                // Need to get all the informations to create the slot
-
-                SlotService.addDateAndTimeToSlot( slot );
-                slot.setNbRemainingPlaces( slot.getMaxCapacity( ) );
-                slot.setNbPotentialRemainingPlaces( slot.getMaxCapacity( ) );
-                slot = SlotSafeService.saveSlot( slot );
-
-            }
-            Lock lock = SlotSafeService.getLockOnSlot( slot.getIdSlot( ) );
-            lock.lock( );
             try
             {
+                if ( slot.getIdSlot( ) == 0 )
+                {
+                    // Need to get all the informations to create the slot
+                    SlotService.addDateAndTimeToSlot( slot );
+                    slot.setNbRemainingPlaces( slot.getMaxCapacity( ) );
+                    slot.setNbPotentialRemainingPlaces( slot.getMaxCapacity( ) );
+                    slot = SlotSafeService.saveSlot( slot );
+                }
                 Slot oldSlot = SlotService.findSlotById( slot.getIdSlot( ) );
-
                 if ( oldSlot.getMaxCapacity( ) > 0 )
                 {
-
-                    slot.setMaxCapacity( oldSlot.getMaxCapacity( ) - 1 );
-                    slot.setNbPotentialRemainingPlaces( oldSlot.getNbPotentialRemainingPlaces( ) - 1 );
-                    slot.setNbRemainingPlaces( oldSlot.getNbRemainingPlaces( ) - 1 );
-                    slot.setNbPlacestaken( oldSlot.getNbPlacesTaken( ) );
-                    slot.setIsSpecific( SlotService.isSpecificSlot( slot ) );
-
-                    TransactionManager.beginTransaction( AppointmentDeskPlugin.getPlugin( ) );
-
-                    SlotSafeService.saveSlot( slot );
-                    TransactionManager.commitTransaction( AppointmentDeskPlugin.getPlugin( ) );
+                    SlotSafeService.adjustSlotCapacity( slot.getIdSlot( ), -1 );
                 }
-
             }
             catch( Exception e )
             {
-                TransactionManager.rollBack( AppointmentDeskPlugin.getPlugin( ) );
                 AppLogService.error( "Error close appointment desk {}", e.getMessage( ), e );
-
-            }
-            finally
-            {
-
-                lock.unlock( );
             }
 
         }
@@ -127,57 +101,34 @@ public class AppointmentDeskService
         for ( Slot slot : listSlot )
         {
 
-            if ( slot.getIdSlot( ) == 0 )
+            if ( closingDay != null )
             {
-                // Need to get all the informations to create the slot
-
-                SlotService.addDateAndTimeToSlot( slot );
-                slot.setNbRemainingPlaces( slot.getMaxCapacity( ) );
-                slot.setNbPotentialRemainingPlaces( slot.getMaxCapacity( ) );
-                slot = SlotSafeService.saveSlot( slot );
-
+                break;
             }
-            if ( closingDay == null )
+            try
             {
-
-                Lock lock = SlotSafeService.getLockOnSlot( slot.getIdSlot( ) );
-                lock.lock( );
-                try
+                if ( slot.getIdSlot( ) == 0 )
                 {
-
-                    Slot oldSlot = SlotService.findSlotById( slot.getIdSlot( ) );
-                    if ( oldSlot.getMaxCapacity( ) < nMaxCapacity )
+                    // Need to get all the informations to create the slot
+                    SlotService.addDateAndTimeToSlot( slot );
+                    slot.setNbRemainingPlaces( slot.getMaxCapacity( ) );
+                    slot.setNbPotentialRemainingPlaces( slot.getMaxCapacity( ) );
+                    slot = SlotSafeService.saveSlot( slot );
+                }
+                Slot oldSlot = SlotService.findSlotById( slot.getIdSlot( ) );
+                if ( oldSlot.getMaxCapacity( ) < nMaxCapacity )
+                {
+                    SlotSafeService.adjustSlotCapacity( slot.getIdSlot( ), 1 );
+                    if ( !oldSlot.getIsOpen( ) )
                     {
-
-                        slot.setMaxCapacity( oldSlot.getMaxCapacity( ) + 1 );
-                        slot.setNbPotentialRemainingPlaces( oldSlot.getNbPotentialRemainingPlaces( ) + 1 );
-                        slot.setNbRemainingPlaces( oldSlot.getNbRemainingPlaces( ) + 1 );
-                        slot.setNbPlacestaken( oldSlot.getNbPlacesTaken( ) );
-                        slot.setIsOpen( true );
-                        slot.setIsSpecific( SlotService.isSpecificSlot( slot ) );
-
-                        TransactionManager.beginTransaction( AppointmentDeskPlugin.getPlugin( ) );
-
-                        SlotSafeService.saveSlot( slot );
-                        TransactionManager.commitTransaction( AppointmentDeskPlugin.getPlugin( ) );
+                        oldSlot.setIsOpen( true );
+                        SlotSafeService.updateSlot( oldSlot );
                     }
                 }
-                catch( Exception e )
-                {
-                    TransactionManager.rollBack( AppointmentDeskPlugin.getPlugin( ) );
-                    AppLogService.error( "Error open appointment desk {}", e.getMessage( ), e );
-
-                }
-                finally
-                {
-
-                    lock.unlock( );
-                }
             }
-            else
+            catch( Exception e )
             {
-
-                break;
+                AppLogService.error( "Error open appointment desk {}", e.getMessage( ), e );
             }
 
         }
