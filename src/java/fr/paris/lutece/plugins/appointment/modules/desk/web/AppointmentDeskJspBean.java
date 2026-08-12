@@ -34,6 +34,7 @@
 package fr.paris.lutece.plugins.appointment.modules.desk.web;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.text.StringEscapeUtils;
 import fr.paris.lutece.api.user.User;
 import fr.paris.lutece.plugins.appointment.business.appointment.Appointment;
 import fr.paris.lutece.plugins.appointment.business.form.Form;
@@ -244,6 +245,27 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
      * @throws JsonProcessingException
      * @throws JsonMappingException
      */
+    /**
+     * Read the JSON payload sent by the desk screen.
+     *
+     * The payload travels in a multipart form field, so it goes through the XSS filter. Since lutece-core 7.1.10 the upload filters are mapped before the safe
+     * request filters ( see LUT-32598 ), which means the filters now scan multipart body form fields : with the admin defaults
+     * ( lutece.safe.request.admin.sanitizeFilterMode=true, xssCharacters containing the double quote ) every " reaches this bean as &amp;#34; and Jackson fails
+     * on the first field name. Up to 7.1.8 the filters ran before the multipart conversion and the payload was left untouched.
+     *
+     * The HTML entities are therefore decoded before parsing.
+     *
+     * @param request
+     *            The Http request
+     * @return the JSON payload, or null if the parameter is absent
+     */
+    private String getJsonParameter( HttpServletRequest request )
+    {
+        String strJson = request.getParameter( PARAMETER_DATA );
+
+        return ( strJson == null ) ? null : StringEscapeUtils.unescapeHtml4( strJson );
+    }
+
     @Action( ACTION_CLOSE_APPOINTMENTDESK )
     public String docloseAppointmentDesk( HttpServletRequest request )
     {
@@ -252,7 +274,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
 
         ObjectNode json = mapper.createObjectNode();
-        String strJson = request.getParameter(PARAMETER_DATA);
+        String strJson = getJsonParameter( request );
         AppLogService.debug( "appointmentDesk - Received strJson : " + strJson );
 
         List<Slot> listSlots;
@@ -307,7 +329,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
 
         ObjectNode json = mapper.createObjectNode();
-        String strJson = request.getParameter(PARAMETER_DATA);
+        String strJson = getJsonParameter( request );
         AppLogService.debug( "appointmentDesk - Received strJson : " + strJson );
 
         List<Slot> listSlots;
