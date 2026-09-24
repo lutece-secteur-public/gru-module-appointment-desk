@@ -9,33 +9,19 @@
 </style>
 <@appointmentTabs tab='day' form=appointmentForm context=context>
 	<@messages errors=errors warnings=warnings infos=infos />
-	<@row>
-	<@columns lg=10 id='fc-calendar-col'>
-		<@div class='d-flex justify-content-end mb-2'>
-			<#if permission_add_comment?boolean>
-				<@button id='toggle-add-comment' color='secondary' size='sm' class='me-1' buttonIcon='message-plus' title='#i18n{appointment.create_comment.pageTitle}' hideTitle=['xs','sm'] params='data-bs-toggle="offcanvas" data-bs-target="#commentModal"' />
-			</#if>
-			<@button type='button' id='btn-add-desk' color='secondary' size='sm' buttonIcon='desktop' title='#i18n{module.appointment.desk.manage_appointmentdesks.buttonAdd}' params='data-bs-toggle="offcanvas" data-bs-target="#deskModal"' />
-		</@div>
-		<@div id='ec-calendar'></@div>
-	</@columns>
-	<@columns lg=2 class='d-none d-lg-block' id='fc-sidebar-col'>
-		<@div id='mini-calendar' class='sticky-top' params='style="top:80px"' />
-	</@columns>
-	</@row>
+	<@div class='d-flex justify-content-end mb-2'>
+		<#if permission_add_comment?boolean>
+			<@button id='toggle-add-comment' color='light' size='sm' class='me-1' buttonIcon='message-plus' title='#i18n{appointment.create_comment.pageTitle}' hideTitle=['xs','sm'] params='data-bs-toggle="offcanvas" data-bs-target="#commentModal"' />
+		</#if>
+		<#if activateEditMode>
+			<@button type='button' id='btn-add-desk' color='light' size='sm' buttonIcon='desktop' title='#i18n{module.appointment.desk.manage_appointmentdesks.buttonAdd}' params='data-bs-toggle="modal" data-bs-target="#deskModal"' />
+		</#if>
+	</@div>
+	<@div id='ec-calendar'></@div>
 </@appointmentTabs>
 
-<@modal id='qModal'>
-	<@modalBody>
-		<@p id='loader' class='text-center'>
-			<@icon style='loader' class='fa-spin fa-5x' />
-			<@span class='sr-only'>#i18n{module.appointment.desk.message.labelLoading}</@span>
-		</@p>
-		<iframe style="width:100%;height:60vh;border:0" frameborder="0" id="qModalFrame" src="" title="#i18n{module.appointment.desk.message.labelLoading}"></iframe>
-	</@modalBody>
-</@modal>
-
 <@modal id='slottoggle' size='sm'>
+	<@modalHeader modalTitle='#i18n{module.appointment.desk.label.toggleTitle}' />
 	<@modalBody>
 		<@div class='ms-3'>
 			<@radioButton id='doOpenSlot' name='doManageSlot' value='1' labelKey='#i18n{module.appointment.desk.label.open}' />
@@ -43,19 +29,21 @@
 		</@div>
 		<@div class='text-center'>
 			<@button id='saveSlotState' color='primary' title='#i18n{module.appointment.desk.label.save}' />
-			<@button id='cancelSlotState' color='secondary' title='#i18n{module.appointment.desk.label.cancel}' params='data-bs-dismiss="modal" aria-label="#i18n{module.appointment.desk.label.cancel}"' />
+			<@button id='cancelSlotState' color='light' title='#i18n{module.appointment.desk.label.cancel}' params='data-bs-dismiss="modal"' />
 		</@div>
 	</@modalBody>
 </@modal>
 
 <#if activateEditMode>
-<@offcanvas id='deskModal' title='#i18n{module.appointment.desk.increment.defaultTitle}' btnTitle='' btnIcon='' btnClass='visually-hidden' position='end' size='sm'>
-	<@tform id='form-validate' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' enctype='multipart/form-data'>
+<@modal id='deskModal'>
+	<@modalHeader modalTitle='#i18n{module.appointment.desk.increment.defaultTitle}' />
+	<@tform id='form-validate' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp'>
+	<@modalBody>
 		<@input type='hidden' name='action' value='incrementMaxCapacity' />
 		<@input type='hidden' name='id_form' value='${idForm!}' />
 		<@input type='hidden' id='day' name='day' value='${day!}' />
 		<@formGroup labelFor='incrementing_value' labelKey='#i18n{module.appointment.desk.increment.labelIncrementingValue}' helpKey='${formGroupHelpKey!}' mandatory=true>
-			<@input type='number' name='incrementing_value' id='incrementing_value' value='1' maxlength=2 params='onkeypress="return validateQty(event);"' min=1 max=10 />
+			<@input type='number' name='incrementing_value' id='incrementing_value' value='1' min=1 max=10 />
 		</@formGroup>
 		<@formGroup labelFor='type' labelKey='#i18n{module.appointment.desk.increment.labelType}'>
 			<@select name='type' id='type' items=list_types default_value='' />
@@ -72,16 +60,17 @@
 		<@formGroup labelFor='endingTime' labelKey='#i18n{module.appointment.desk.increment.labelEndingTime}'>
 			<@input type='text' name='ending_time' id='endingTime' value='' />
 		</@formGroup>
-		<@formGroup>
-			<@button type='submit' name='save' id='save' buttonIcon='check' title='#i18n{module.appointment.desk.increment.labelValidate}' />
-		</@formGroup>
+	</@modalBody>
+	<@modalFooter>
+		<@button type='button' color='light' title='#i18n{module.appointment.desk.label.cancel}' params='data-bs-dismiss="modal"' />
+		<@button type='submit' name='save' id='save' buttonIcon='check' title='#i18n{module.appointment.desk.increment.labelValidate}' />
+	</@modalFooter>
 	</@tform>
-</@offcanvas>
+</@modal>
 </#if>
 <@getCommentModal 'commentModal' '#i18n{appointment.create_comment.pageTitle}' "comment" "startingValidityDate" "endingValidityDate" "idStartingTime" "idEndingTime" "doAddComment" idForm mailing_list locale "appointmentdesk" '${context!}-${day!}' />
 <@getCommentModal 'modify-comment' '#i18n{appointment.modify_comment.pageTitle}' "modifyComment" "modifyStartingValidityDate" "modifyEndingValidityDate" "idModifyStartingTime" "idModifyEndingTime" "doModifyComment" idForm mailing_list locale "appointmentdesk" '${context!}-${day!}' />
 <script src="themes/shared/plugins/appointment/modules/desk/event-calendar.min.js"></script>
-<script src="themes/shared/plugins/appointment/modules/desk/appointment_desk.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 	const currentDayLocale = '${day!}';
@@ -216,20 +205,27 @@ document.addEventListener('DOMContentLoaded', function() {
 	const commentEvents = [];
 	<#if list_comments?has_content>
 	<#list list_comments as comment>
-	<#compress><#assign comment_title>${comment.comment?replace('\n', '')?replace('\r', '')?replace('\rn', '')?replace('\'', '&apos;')}</#assign></#compress>
+	<#assign comment_title = ( comment.comment! )?replace( '\r', '' )?replace( '\n', ' ' )>
 	commentEvents.push({
 		id: 'comment-${comment.id!}',
 		start: currentDay,
 		end: currentDay,
 		resourceIds: [resources[0].id],
-		title: '${comment_title!?json_string}',
+		title: '${comment_title!?js_string}',
 		allDay: true,
 		color: 'rgba(233, 250, 0, 0.8)',
 		textColor: '#856404',
 		extendedProps: {
 			type: 'comment',
-			author: '${comment.creatorUserName!}',
-			data: '{"id_comment":"C${comment.id}", "comment_text": "${comment_title!?json_string}", "comment_start":"${comment.startingValidityDate!}", "comment_start_time":"${comment.startingValidityTime!}", "comment_end":"${comment.endingValidityDate!}", "comment_end_time":"${comment.endingValidityTime!}", "comment_creation_user":"${comment.userFirstName!} ${comment.userLastName!}", "comment_creation_date":"${comment.creationDate?date.xs!}"}'
+			author: '${(comment.creatorUserName!)?js_string}',
+			data: {
+				id_comment: '${comment.id}',
+				comment_text: '${comment_title!?js_string}',
+				comment_start: '${(comment.startingValidityDate!)?js_string}',
+				comment_start_time: '${(comment.startingValidityTime!)?js_string}',
+				comment_end: '${(comment.endingValidityDate!)?js_string}',
+				comment_end_time: '${(comment.endingValidityTime!)?js_string}'
+			}
 		}
 	});
 	</#list>
@@ -319,6 +315,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		slotMaxTime: maxTime,
 		slotDuration: '00:${appointmentForm.durationAppointments!30}:00',
 		allDaySlot: true,
+		allDayContent: '#i18n{module.appointment.desk.label.allDay}',
 		headerToolbar: {
 			start: 'prev',
 			center: 'title',
@@ -326,7 +323,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		},
 		buttonText: {
 			today: "#i18n{appointment.appointmentCalendar.labelToday}"
-			// today: 'Today'
 		},
 		resources: resources,
 		events: allEvents,
@@ -335,15 +331,18 @@ document.addEventListener('DOMContentLoaded', function() {
 			if (ep.type === 'comment') {
 				return { html: '<div class="ec-event-title" style="overflow:hidden;text-overflow:ellipsis">' + info.event.title + '</div>' };
 			}
-			return { html: '<div class="ec-event-title">' + (info.event.title || '') + '</div>' };
+			const title = document.createElement( 'div' );
+			title.className = 'ec-event-title';
+			title.textContent = info.event.title || '';
+			return { domNodes: [ title ] };
 		},
 		eventClick: function(info) {
 			const ep = info.event.extendedProps;
 			if (ep.type === 'comment') {
 				/* Comment click — edit/delete */
 				const isCommentModerator = ${permission_moderate_comment};
-				if (ep.author === '${permission_access_code}' || isCommentModerator) {
-					const formValues = JSON.parse(ep.data);
+				if (ep.author === '${permission_access_code?js_string}' || isCommentModerator) {
+					const formValues = ep.data;
 					const modifyOffcanvasEl = document.getElementById('modify-comment');
 					const commentOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(modifyOffcanvasEl);
 
@@ -351,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
 						modifyOffcanvasEl.removeEventListener('shown.bs.offcanvas', onShown);
 
 						/* Set comment id */
-						document.querySelector('#modify-comment input[name="id_comment"]').value = formValues.id_comment.slice(1);
+						document.querySelector('#modify-comment input[name="id_comment"]').value = formValues.id_comment;
 
 						/* Set comment text in textarea + TinyMCE */
 						const ta = document.getElementById('modifyComment');
