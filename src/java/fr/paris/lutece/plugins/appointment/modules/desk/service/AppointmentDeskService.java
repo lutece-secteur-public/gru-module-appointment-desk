@@ -54,136 +54,125 @@ import fr.paris.lutece.util.sql.TransactionManager;
 public class AppointmentDeskService
 {
 
+    /**
+     * Utility class.
+     */
     private AppointmentDeskService( )
     {
-
     }
 
+    /**
+     * Close one desk on each slot: the capacity of the slot, as stored, loses one place. A slot of the typical week not
+     * stored yet is created first.
+     * 
+     * @param listSlot
+     *            the slots, as the desk screen sends them
+     */
     public static void closeAppointmentDesk( List<Slot> listSlot )
     {
-
         for ( Slot slot : listSlot )
         {
+            changeCapacity( storedSlot( slot ), -1, Integer.MAX_VALUE );
+        }
+    }
 
-            if ( slot.getIdSlot( ) == 0 )
+    /**
+     * Open one desk on each slot: the capacity of the slot, as stored, gains one place, up to the number of desks of the
+     * day. Nothing is opened on a closing day.
+     * 
+     * @param listSlot
+     *            the slots, as the desk screen sends them
+     * @param nMaxCapacity
+     *            the number of desks of the day
+     */
+    public static void openAppointmentDesk( List<Slot> listSlot, int nMaxCapacity )
+    {
+        if ( listSlot.isEmpty( ) || ClosingDayService.findClosingDayByIdFormAndDateOfClosingDay( listSlot.get( 0 ).getIdForm( ),
+                listSlot.get( 0 ).getStartingDateTime( ).toLocalDate( ) ) != null )
+        {
+            return;
+        }
+        for ( Slot slot : listSlot )
+        {
+            changeCapacity( storedSlot( slot ), 1, nMaxCapacity );
+        }
+    }
+
+    /**
+     * Get the id of the stored slot matching a slot sent by the desk screen, creating it when it only exists in the
+     * typical week.
+     * 
+     * @param slot
+     *            the slot sent by the screen
+     * @return the id of the stored slot
+     */
+    private static int storedSlot( Slot slot )
+    {
+        if ( slot.getIdSlot( ) != 0 )
+        {
+            return slot.getIdSlot( );
+        }
+        SlotService.addDateAndTimeToSlot( slot );
+        slot.setNbRemainingPlaces( slot.getMaxCapacity( ) );
+        slot.setNbPotentialRemainingPlaces( slot.getMaxCapacity( ) );
+        return SlotSafeService.saveSlot( slot ).getIdSlot( );
+    }
+
+    /**
+     * Add a number of places to the capacity of a stored slot, under its lock, keeping the capacity between 0 and a
+     * maximum. Only the capacity and the remaining places change: every other value is the stored one.
+     * 
+     * @param nIdSlot
+     *            the id of the stored slot
+     * @param nDelta
+     *            the places to add, negative to remove
+     * @param nMaxCapacity
+     *            the highest capacity allowed
+     */
+    private static void changeCapacity( int nIdSlot, int nDelta, int nMaxCapacity )
+    {
+        Lock lock = SlotSafeService.getLockOnSlot( nIdSlot );
+        lock.lock( );
+        try
+        {
+            Slot slot = SlotService.findSlotById( nIdSlot );
+            int nCapacity = ( slot != null ) ? slot.getMaxCapacity( ) + nDelta : -1;
+            if ( nCapacity < 0 || nCapacity > nMaxCapacity )
             {
-                // Need to get all the informations to create the slot
-
-                SlotService.addDateAndTimeToSlot( slot );
-                slot.setNbRemainingPlaces( slot.getMaxCapacity( ) );
-                slot.setNbPotentialRemainingPlaces( slot.getMaxCapacity( ) );
-                slot = SlotSafeService.saveSlot( slot );
-
+                return;
             }
-            Lock lock = SlotSafeService.getLockOnSlot( slot.getIdSlot( ) );
-            lock.lock( );
+            slot.setMaxCapacity( nCapacity );
+            slot.setNbPotentialRemainingPlaces( slot.getNbPotentialRemainingPlaces( ) + nDelta );
+            slot.setNbRemainingPlaces( slot.getNbRemainingPlaces( ) + nDelta );
+            if ( nDelta > 0 )
+            {
+                slot.setIsOpen( true );
+            }
+            slot.setIsSpecific( SlotService.isSpecificSlot( slot ) );
+            TransactionManager.beginTransaction( AppointmentDeskPlugin.getPlugin( ) );
             try
             {
-                Slot oldSlot = SlotService.findSlotById( slot.getIdSlot( ) );
-
-                if ( oldSlot.getMaxCapacity( ) > 0 )
-                {
-
-                    slot.setMaxCapacity( oldSlot.getMaxCapacity( ) - 1 );
-                    slot.setNbPotentialRemainingPlaces( oldSlot.getNbPotentialRemainingPlaces( ) - 1 );
-                    slot.setNbRemainingPlaces( oldSlot.getNbRemainingPlaces( ) - 1 );
-                    slot.setNbPlacestaken( oldSlot.getNbPlacesTaken( ) );
-                    slot.setIsSpecific( SlotService.isSpecificSlot( slot ) );
-
-                    TransactionManager.beginTransaction( AppointmentDeskPlugin.getPlugin( ) );
-
-                    SlotSafeService.saveSlot( slot );
-                    TransactionManager.commitTransaction( AppointmentDeskPlugin.getPlugin( ) );
-                }
-
+                SlotSafeService.saveSlot( slot );
+                TransactionManager.commitTransaction( AppointmentDeskPlugin.getPlugin( ) );
             }
             catch( Exception e )
             {
                 TransactionManager.rollBack( AppointmentDeskPlugin.getPlugin( ) );
-                AppLogService.error( "Error close appointment desk {}", e.getMessage( ), e );
-
+                AppLogService.error( "Error changing the capacity of the slot {}", nIdSlot, e );
             }
-            finally
-            {
-
-                lock.unlock( );
-            }
-
         }
-
+        finally
+        {
+            lock.unlock( );
+        }
     }
 
-    public static void openAppointmentDesk( List<Slot> listSlot, int nMaxCapacity )
-    {
-
-        ClosingDay closingDay = null;
-        if ( !listSlot.isEmpty( ) )
-        {
-
-            closingDay = ClosingDayService.findClosingDayByIdFormAndDateOfClosingDay( listSlot.get( 0 ).getIdForm( ),
-                    listSlot.get( 0 ).getStartingDateTime( ).toLocalDate( ) );
-        }
-
-        for ( Slot slot : listSlot )
-        {
-
-            if ( slot.getIdSlot( ) == 0 )
-            {
-                // Need to get all the informations to create the slot
-
-                SlotService.addDateAndTimeToSlot( slot );
-                slot.setNbRemainingPlaces( slot.getMaxCapacity( ) );
-                slot.setNbPotentialRemainingPlaces( slot.getMaxCapacity( ) );
-                slot = SlotSafeService.saveSlot( slot );
-
-            }
-            if ( closingDay == null )
-            {
-
-                Lock lock = SlotSafeService.getLockOnSlot( slot.getIdSlot( ) );
-                lock.lock( );
-                try
-                {
-
-                    Slot oldSlot = SlotService.findSlotById( slot.getIdSlot( ) );
-                    if ( oldSlot.getMaxCapacity( ) < nMaxCapacity )
-                    {
-
-                        slot.setMaxCapacity( oldSlot.getMaxCapacity( ) + 1 );
-                        slot.setNbPotentialRemainingPlaces( oldSlot.getNbPotentialRemainingPlaces( ) + 1 );
-                        slot.setNbRemainingPlaces( oldSlot.getNbRemainingPlaces( ) + 1 );
-                        slot.setNbPlacestaken( oldSlot.getNbPlacesTaken( ) );
-                        slot.setIsOpen( true );
-                        slot.setIsSpecific( SlotService.isSpecificSlot( slot ) );
-
-                        TransactionManager.beginTransaction( AppointmentDeskPlugin.getPlugin( ) );
-
-                        SlotSafeService.saveSlot( slot );
-                        TransactionManager.commitTransaction( AppointmentDeskPlugin.getPlugin( ) );
-                    }
-                }
-                catch( Exception e )
-                {
-                    TransactionManager.rollBack( AppointmentDeskPlugin.getPlugin( ) );
-                    AppLogService.error( "Error open appointment desk {}", e.getMessage( ), e );
-
-                }
-                finally
-                {
-
-                    lock.unlock( );
-                }
-            }
-            else
-            {
-
-                break;
-            }
-
-        }
-
-    }
-
+    /**
+     * Add places to every slot of a form between two dates, for the whole day, a half day, or a time range.
+     * 
+     * @param incrementSlot
+     *            the places to add, the dates, the times and the kind of increment
+     */
     public static void incrementMaxCapacity( IncrementSlot incrementSlot )
     {
 

@@ -72,6 +72,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.NoSuchElementException;
 
 import jakarta.enterprise.context.SessionScoped;
@@ -80,6 +81,8 @@ import jakarta.inject.Named;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -155,6 +158,9 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
 
     private static final String PROPERTY_MESSAGE_ERROR_PARSING_JSON = "module.appointment.desk.error.parsing.json";
     private static final String PROPERTY_MESSAGE_ERROR_ACCESS_DENIED = "module.appointment.desk.error.access.denied";
+    private static final String PROPERTY_MESSAGE_ERROR_INCREMENT_INVALID = "module.appointment.desk.error.increment.invalid";
+    private static final ObjectMapper MAPPER = new ObjectMapper( ).registerModule( new JavaTimeModule( ) )
+            .configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
     // Session variable to store working values
     private int _nMaxCapacity;
     private String _strContext;
@@ -171,7 +177,12 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     {
         Plugin moduleAppointmentDesk = getPlugin( );
         String strIdForm = request.getParameter( PARAMETER_ID_FORM );
-        int nIdForm = Integer.parseInt( strIdForm );
+        int nIdForm = NumberUtils.toInt( strIdForm, -1 );
+        Form form = FormService.findFormLightByPrimaryKey( nIdForm );
+        if ( form == null )
+        {
+            return redirect( request, AppointmentFormJspBean.getURLManageAppointmentForms( request ) );
+        }
         String strDayDate = request.getParameter( PARAMETER_DATE_DAY );
         String strContext = request.getParameter( PARAMETER_CONTEXT );
         _strContext = StringUtils.isNotEmpty( strContext ) ? strContext : StringUtils.defaultString( _strContext );
@@ -183,7 +194,6 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         {
             activateEditMode = false;
         }
-        Form form = FormService.findFormLightByPrimaryKey( nIdForm );
         HashMap<LocalDate, WeekDefinition> mapWeekDefinition = WeekDefinitionService.findAllWeekDefinition( nIdForm );
         if ( StringUtils.isNotEmpty( strDayDate ) )
         {
@@ -254,137 +264,111 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     }
 
     /**
-     * Process the data capture form of a new appointmentdesk
+     * Close one desk on the slots the desk screen selected.
      *
      * @param request
-     *            The Http Request
-     * @return The Jsp URL of the process result
-     * @throws AccessDeniedException
-     * @throws JsonProcessingException
-     * @throws JsonMappingException
+     *            The Http request, whose data parameter carries the slots as JSON
+     * @return The JSON answer: success, or the error to show
      */
     @Action( ACTION_CLOSE_APPOINTMENTDESK )
     public String docloseAppointmentDesk( HttpServletRequest request )
     {
-        ObjectMapper mapper = new ObjectMapper( );
-        mapper.registerModule( new JavaTimeModule( ) );
-        mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-
-        ObjectNode json = mapper.createObjectNode();
-        String strJson = request.getParameter(PARAMETER_DATA);
-        if ( strJson != null )
-        {
-            String strPrevious;
-            do
-            {
-                strPrevious = strJson;
-                strJson = org.apache.commons.text.StringEscapeUtils.unescapeHtml4( strJson );
-            }
-            while ( !strJson.equals( strPrevious ) );
-        }
-        AppLogService.debug( "appointmentDesk - Received strJson : {}", strJson );
-
-        List<Slot> listSlots;
-        try
-        {
-            listSlots = mapper.readValue( strJson, new TypeReference<List<Slot>>( )
-            {
-            } );
-
-        }
-        catch( JsonProcessingException e )
-        {
-
-            AppLogService.error( "{}{}", PROPERTY_MESSAGE_ERROR_PARSING_JSON, e.getMessage( ), e );
-            json.put( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_PARSING_JSON, getLocale( ) ) );
-
-            return json.toString( );
-        }
-
-        if ( !RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, Integer.toString( listSlots.get( 0 ).getIdForm( ) ),
-                AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM, (User) getUser( ) ) )
-        {
-            AppLogService.error( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM,
-                    new AccessDeniedException( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM ) );
-            json.put( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_ACCESS_DENIED, getLocale( ) ) );
-
-            return json.toString( );
-        }
-
-        AppointmentDeskService.closeAppointmentDesk( listSlots );
-
-        json.put( JSON_KEY_SUCCESS, JSON_KEY_SUCCESS );
-        return json.toString( );
-
+        return processSlots( request, AppointmentDeskService::closeAppointmentDesk );
     }
 
     /**
-     * Process the change form of a appointmentdesk
+     * Open one desk on the slots the desk screen selected.
      *
      * @param request
-     *            The Http request
-     * @return The Jsp URL of the process result
-     * @throws AccessDeniedException
-     * @throws JsonProcessingException
-     * @throws JsonMappingException
+     *            The Http request, whose data parameter carries the slots as JSON
+     * @return The JSON answer: success, or the error to show
      */
     @Action( ACTION_OPEN_APPOINTMENTDESK )
     public String doOpenAppointmentDesk( HttpServletRequest request )
     {
-        ObjectMapper mapper = new ObjectMapper( );
-        mapper.registerModule( new JavaTimeModule( ) );
-        mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+        return processSlots( request, listSlots -> AppointmentDeskService.openAppointmentDesk( listSlots, _nMaxCapacity ) );
+    }
 
-        ObjectNode json = mapper.createObjectNode();
-        String strJson = request.getParameter(PARAMETER_DATA);
-        if ( strJson != null )
-        {
-            String strPrevious;
-            do
-            {
-                strPrevious = strJson;
-                strJson = org.apache.commons.text.StringEscapeUtils.unescapeHtml4( strJson );
-            }
-            while ( !strJson.equals( strPrevious ) );
-        }
-        AppLogService.debug( "appointmentDesk - Received strJson : {}", strJson );
-
+    /**
+     * Read the slots sent by the desk screen and apply an operation to them, once the user is proven to hold the right
+     * on the form of every slot: the form of a stored slot is the stored one, never the one the screen sent.
+     *
+     * @param request
+     *            The Http request, whose data parameter carries the slots as JSON
+     * @param operation
+     *            The operation on the slots
+     * @return The JSON answer: success, or the error to show
+     */
+    private String processSlots( HttpServletRequest request, Consumer<List<Slot>> operation )
+    {
+        ObjectNode json = MAPPER.createObjectNode( );
         List<Slot> listSlots;
         try
         {
-
-            listSlots = mapper.readValue( strJson, new TypeReference<List<Slot>>( )
+            listSlots = MAPPER.readValue( unescape( request.getParameter( PARAMETER_DATA ) ), new TypeReference<List<Slot>>( )
             {
             } );
-
         }
-        catch( JsonProcessingException e )
+        catch( JsonProcessingException | IllegalArgumentException e )
         {
-
-            AppLogService.error( "{}{}", PROPERTY_MESSAGE_ERROR_PARSING_JSON, e.getMessage( ), e );
+            AppLogService.error( "Error parsing the slots sent by the desk screen", e );
+            listSlots = null;
+        }
+        if ( listSlots == null || listSlots.isEmpty( ) )
+        {
             json.put( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_PARSING_JSON, getLocale( ) ) );
-
             return json.toString( );
         }
-
-        if ( !RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, Integer.toString( listSlots.get( 0 ).getIdForm( ) ),
-                AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM, (User) getUser( ) ) )
+        for ( Slot slot : listSlots )
         {
-            AppLogService.error( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM,
-                    new AccessDeniedException( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM ) );
-            json.put( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_ACCESS_DENIED, getLocale( ) ) );
-
-            return json.toString( );
-
+            Slot stored = ( slot.getIdSlot( ) != 0 ) ? SlotService.findSlotById( slot.getIdSlot( ) ) : null;
+            int nIdForm = ( stored != null ) ? stored.getIdForm( ) : slot.getIdForm( );
+            if ( ( slot.getIdSlot( ) != 0 && stored == null ) || !RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, Integer.toString( nIdForm ),
+                    AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM, (User) getUser( ) ) )
+            {
+                json.put( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_ACCESS_DENIED, getLocale( ) ) );
+                return json.toString( );
+            }
+            slot.setIdForm( nIdForm );
         }
-
-        AppointmentDeskService.openAppointmentDesk( listSlots, _nMaxCapacity );
-
+        operation.accept( listSlots );
         json.put( JSON_KEY_SUCCESS, JSON_KEY_SUCCESS );
         return json.toString( );
-
     }
 
+    /**
+     * Undo the HTML escaping the request filter applies to a JSON parameter.
+     *
+     * @param strJson
+     *            The parameter
+     * @return The JSON, or null
+     */
+    private static String unescape( String strJson )
+    {
+        if ( strJson == null )
+        {
+            return null;
+        }
+        String strPrevious;
+        String strCurrent = strJson;
+        do
+        {
+            strPrevious = strCurrent;
+            strCurrent = StringEscapeUtils.unescapeHtml4( strCurrent );
+        }
+        while ( !strCurrent.equals( strPrevious ) );
+        return strCurrent;
+    }
+
+    /**
+     * Add places to the slots of a form between two dates, then show the desk screen again.
+     *
+     * @param request
+     *            The Http request
+     * @return The HTML of the desk screen
+     * @throws AccessDeniedException
+     *             If the user may not modify the form
+     */
     @Action( ACTION_INCREMENT_MAX_CAPACITY )
     public String doIncrementMaxCapacity( HttpServletRequest request ) throws AccessDeniedException
     {
@@ -395,9 +379,14 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         {
             throw new AccessDeniedException( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM );
         }
-        populate( request, incrementSlot );
-
-        AppointmentDeskService.incrementMaxCapacity( incrementSlot );
+        if ( populate( request, incrementSlot ) )
+        {
+            AppointmentDeskService.incrementMaxCapacity( incrementSlot );
+        }
+        else
+        {
+            addError( PROPERTY_MESSAGE_ERROR_INCREMENT_INVALID, getLocale( ) );
+        }
 
         return getManageAppointmentDesks( request );
     }
@@ -421,27 +410,33 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     }
 
     /**
-     * Populate a bean using parameters in http request
-     * 
+     * Fill the increment from the request.
+     *
      * @param request
-     *            http request
-     * @param bean
-     *            bean to populate
+     *            The Http request
+     * @param incrementSlot
+     *            The increment to fill
+     * @return true when every value of the request is valid: numbers, dates of the locale, a known type
      */
-    private void populate( HttpServletRequest request, IncrementSlot incrementSlot )
+    private boolean populate( HttpServletRequest request, IncrementSlot incrementSlot )
     {
+        Date startingDate = DateUtil.formatDate( request.getParameter( PARAMETER_STARTING_DATE ), getLocale( ) );
+        Date endingDate = DateUtil.formatDate( request.getParameter( PARAMETER_ENDING_DATE ), getLocale( ) );
+        int nIdForm = NumberUtils.toInt( request.getParameter( PARAMETER_ID_FORM ), -1 );
+        int nValue = NumberUtils.toInt( request.getParameter( PARAMETER_INCREMENTING_VALUE ), 0 );
+        IncrementingType type = IncrementingType.valueOf( NumberUtils.toInt( request.getParameter( PARAMETER_TYPE ), -1 ) );
 
-        incrementSlot.setIdForm( Integer.parseInt( request.getParameter( PARAMETER_ID_FORM ) ) );
+        if ( startingDate == null || endingDate == null || nIdForm < 0 || nValue == 0 || type == null )
+        {
+            return false;
+        }
+        incrementSlot.setIdForm( nIdForm );
         incrementSlot.setEndingTime( request.getParameter( PARAMETER_ENDING_TIME ) );
         incrementSlot.setStartingTime( request.getParameter( PARAMETER_STARTING_TIME ) );
-        incrementSlot.setIncrementingValue( Integer.parseInt( request.getParameter( PARAMETER_INCREMENTING_VALUE ) ) );
-        incrementSlot.setEndingDate( DateUtil.formatDate( request.getParameter( PARAMETER_ENDING_DATE ), getLocale( ) ).toInstant( )
-                .atZone( ZoneId.systemDefault( ) ).toLocalDate( ) );
-
-        incrementSlot.setStartingDate( DateUtil.formatDate( request.getParameter( PARAMETER_STARTING_DATE ), getLocale( ) ).toInstant( )
-                .atZone( ZoneId.systemDefault( ) ).toLocalDate( ) );
-
-        int type = Integer.parseInt( request.getParameter( PARAMETER_TYPE ) );
-        incrementSlot.setType( IncrementingType.valueOf( type ) );
+        incrementSlot.setIncrementingValue( nValue );
+        incrementSlot.setStartingDate( startingDate.toInstant( ).atZone( ZoneId.systemDefault( ) ).toLocalDate( ) );
+        incrementSlot.setEndingDate( endingDate.toInstant( ).atZone( ZoneId.systemDefault( ) ).toLocalDate( ) );
+        incrementSlot.setType( type );
+        return true;
     }
 }
