@@ -4,3 +4,4 @@ webapp/WEB-INF/conf/db.properties
 .classpath
 .project
 logs
+java.io.tmpdir/
