@@ -11,7 +11,7 @@
 	<@messages errors=errors warnings=warnings infos=infos />
 	<@div class='d-flex justify-content-end mb-2'>
 		<#if permission_add_comment?boolean>
-			<@button id='toggle-add-comment' color='light' size='sm' class='me-1' buttonIcon='message-plus' title='#i18n{appointment.create_comment.pageTitle}' hideTitle=['xs','sm'] params='data-bs-toggle="offcanvas" data-bs-target="#commentModal"' />
+			<@button id='toggle-add-comment' color='light' size='sm' class='me-1' buttonIcon='message-plus' title='#i18n{appointment.create_comment.pageTitle}' hideTitle=['xs','sm'] params='data-bs-toggle="modal" data-bs-target="#commentModal"' />
 		</#if>
 		<#if activateEditMode>
 			<@button type='button' id='btn-add-desk' color='light' size='sm' buttonIcon='desktop' title='#i18n{module.appointment.desk.manage_appointmentdesks.buttonAdd}' params='data-bs-toggle="modal" data-bs-target="#deskModal"' />
@@ -343,11 +343,11 @@ document.addEventListener('DOMContentLoaded', function() {
 				const isCommentModerator = ${permission_moderate_comment};
 				if (ep.author === '${permission_access_code?js_string}' || isCommentModerator) {
 					const formValues = ep.data;
-					const modifyOffcanvasEl = document.getElementById('modify-comment');
-					const commentOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(modifyOffcanvasEl);
+					const modifyModalEl = document.getElementById('modify-comment');
+					const commentModal = bootstrap.Modal.getOrCreateInstance(modifyModalEl);
 
-					modifyOffcanvasEl.addEventListener('shown.bs.offcanvas', function onShown() {
-						modifyOffcanvasEl.removeEventListener('shown.bs.offcanvas', onShown);
+					modifyModalEl.addEventListener('shown.bs.modal', function onShown() {
+						modifyModalEl.removeEventListener('shown.bs.modal', onShown);
 
 						/* Set comment id */
 						document.querySelector('#modify-comment input[name="id_comment"]').value = formValues.id_comment;
@@ -374,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() {
 						fpSet(document.getElementById('idModifyEndingTime'), formValues.comment_end_time);
 					});
 
-					commentOffcanvas.show();
+					commentModal.show();
 				}
 			} else if (ep.url) {
 				/* Appointment click — open detail */
