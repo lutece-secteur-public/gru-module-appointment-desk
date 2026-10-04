@@ -59,6 +59,8 @@ import fr.paris.lutece.portal.service.i18n.I18nService;
 import fr.paris.lutece.portal.service.mailinglist.AdminMailingListService;
 import fr.paris.lutece.portal.service.plugin.Plugin;
 import fr.paris.lutece.portal.service.rbac.RBACService;
+import fr.paris.lutece.portal.service.security.SecurityTokenHandler;
+import fr.paris.lutece.portal.service.security.SecurityTokenService;
 import fr.paris.lutece.portal.util.mvc.admin.annotations.Controller;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.Action;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.View;
@@ -95,7 +97,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
  */
 @SessionScoped
 @Named
-@Controller( controllerJsp = "ManageAppointmentDesks.jsp", controllerPath = "jsp/admin/plugins/appointment/modules/desk/", right = AppointmentFormJspBean.RIGHT_MANAGEAPPOINTMENTFORM )
+@Controller( controllerJsp = "ManageAppointmentDesks.jsp", controllerPath = "jsp/admin/plugins/appointment/modules/desk/", right = AppointmentFormJspBean.RIGHT_MANAGEAPPOINTMENTFORM, securityTokenEnabled = true )
 public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
 {
     /**
@@ -105,6 +107,9 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
 
     @Inject
     private Models _models;
+
+    @Inject
+    private SecurityTokenService _securityTokenService;
 
     // Templates
     private static final String TEMPLATE_MANAGE_APPOINTMENTDESKS = "/admin/plugins/appointment/modules/desk/manage_appointmentdesks.html";
@@ -139,6 +144,8 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String MARK_MAILING_LIST = "mailing_list";
     private static final String MARK_CONTEXT = "context";
     private static final String MARK_APPOINTMENT_DESK_ENABLED = "isDeskInstalled";
+    private static final String MARK_TOKEN_OPEN_DESK = "token_open_desk";
+    private static final String MARK_TOKEN_CLOSE_DESK = "token_close_desk";
 
     // Properties
 
@@ -172,7 +179,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
      *            The HTTP request
      * @return The page
      */
-    @View( value = VIEW_MANAGE_APPOINTMENTDESKS, defaultView = true )
+    @View( value = VIEW_MANAGE_APPOINTMENTDESKS, defaultView = true, securityTokenAction = ACTION_INCREMENT_MAX_CAPACITY )
     public String getManageAppointmentDesks( HttpServletRequest request )
     {
         Plugin moduleAppointmentDesk = getPlugin( );
@@ -259,6 +266,9 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
                 AppointmentResourceIdService.PERMISSION_MODERATE_COMMENT_FORM, user ) ) );
         _models.put( AppointmentUtilities.MARK_PERMISSION_ACCESS_CODE, user.getAccessCode( ) );
         _models.put( MARK_APPOINTMENT_DESK_ENABLED, ( moduleAppointmentDesk != null ) && moduleAppointmentDesk.isInstalled( ) );
+        _models.put( MARK_TOKEN_OPEN_DESK, _securityTokenService.getToken( request, ACTION_OPEN_APPOINTMENTDESK ) );
+        _models.put( MARK_TOKEN_CLOSE_DESK, _securityTokenService.getToken( request, ACTION_CLOSE_APPOINTMENTDESK ) );
+        _models.put( SecurityTokenHandler.MARK_CSRF_TOKEN, _securityTokenService.getToken( request, ACTION_INCREMENT_MAX_CAPACITY ) );
 
         return getPage( PROPERTY_PAGE_TITLE_MANAGE_APPOINTMENTDESKS, TEMPLATE_MANAGE_APPOINTMENTDESKS );
     }
