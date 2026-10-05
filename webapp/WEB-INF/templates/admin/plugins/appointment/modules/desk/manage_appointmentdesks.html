@@ -273,6 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			document.getElementById('saveSlotState').removeEventListener('click', onClick);
 			const doOpen = document.querySelector('#slottoggle .modal-body input:checked').value == 1;
 			const action = doOpen ? 'openAppointmentDesk' : 'closeAppointmentDesk';
+			const token = doOpen ? '${token_open_desk!}' : '${token_close_desk!}';
 
 			/* For each slot in range: adjust maxCapacity by +1 (open) or -1 (close) */
 			const slotsToUpdate = refSlots.map(function(ev) {
@@ -296,7 +297,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			fetch(navUrl, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-				body: 'action=' + action + '&data=' + encodeURIComponent(JSON.stringify(slotsToUpdate)),
+				body: 'action=' + action + '&_csrftoken=' + encodeURIComponent(token) + '&data=' + encodeURIComponent(JSON.stringify(slotsToUpdate)),
 				credentials: 'same-origin'
 			}).finally(function() {
 				modal.hide();
