@@ -60,6 +60,7 @@ import fr.paris.lutece.portal.service.plugin.Plugin;
 import fr.paris.lutece.portal.service.rbac.RBACService;
 import fr.paris.lutece.portal.service.security.SecurityTokenHandler;
 import fr.paris.lutece.portal.service.security.SecurityTokenService;
+import fr.paris.lutece.portal.service.workgroup.AdminWorkgroupService;
 import fr.paris.lutece.portal.util.mvc.admin.annotations.Controller;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.Action;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.View;
@@ -176,9 +177,11 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
      * @param request
      *            The HTTP request
      * @return The page
+     * @throws AccessDeniedException
+     *             If the user cannot see the form
      */
     @View( value = VIEW_MANAGE_APPOINTMENTDESKS, defaultView = true, securityTokenAction = ACTION_INCREMENT_MAX_CAPACITY )
-    public String getManageAppointmentDesks( HttpServletRequest request )
+    public String getManageAppointmentDesks( HttpServletRequest request ) throws AccessDeniedException
     {
         Plugin moduleAppointmentDesk = getPlugin( );
         String strIdForm = request.getParameter( PARAMETER_ID_FORM );
@@ -188,12 +191,18 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         {
             return redirect( request, AppointmentFormJspBean.getURLManageAppointmentForms( request ) );
         }
+        User user = getUser( );
+        // The day shows the appointments of the form: the same access as its calendar
+        if ( !RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, strIdForm, AppointmentResourceIdService.PERMISSION_VIEW_FORM, user )
+                || !AdminWorkgroupService.isAuthorized( form, user ) )
+        {
+            throw new AccessDeniedException( AppointmentResourceIdService.PERMISSION_VIEW_FORM );
+        }
         String strDayDate = request.getParameter( PARAMETER_DATE_DAY );
         String strContext = request.getParameter( PARAMETER_CONTEXT );
         _strContext = StringUtils.isNotEmpty( strContext ) ? strContext : StringUtils.defaultString( _strContext );
         boolean activateEditMode = true;
         LocalDate dateDay = null;
-        User user = getUser( );
         if ( !RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, strIdForm, AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM,
                 user ) )
         {
