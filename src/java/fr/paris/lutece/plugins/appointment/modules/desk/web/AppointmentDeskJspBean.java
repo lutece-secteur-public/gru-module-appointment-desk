@@ -33,7 +33,6 @@
  */
 package fr.paris.lutece.plugins.appointment.modules.desk.web;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.paris.lutece.api.user.User;
 import fr.paris.lutece.plugins.appointment.business.appointment.Appointment;
 import fr.paris.lutece.plugins.appointment.business.form.Form;
@@ -74,6 +73,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.NoSuchElementException;
 
@@ -160,8 +160,6 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String ACTION_INCREMENT_MAX_CAPACITY = "incrementMaxCapacity";
 
     // Infos
-    private static final String JSON_KEY_ERROR = "error";
-    private static final String JSON_KEY_SUCCESS = "success";
 
     private static final String PROPERTY_MESSAGE_ERROR_PARSING_JSON = "module.appointment.desk.error.parsing.json";
     private static final String PROPERTY_MESSAGE_ERROR_ACCESS_DENIED = "module.appointment.desk.error.access.denied";
@@ -278,7 +276,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
      *
      * @param request
      *            The Http request, whose data parameter carries the slots as JSON
-     * @return The JSON answer: success, or the error to show
+     * @return The url of the desk screen, which shows the error if any
      */
     @Action( ACTION_CLOSE_APPOINTMENTDESK )
     public String docloseAppointmentDesk( HttpServletRequest request )
@@ -291,7 +289,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
      *
      * @param request
      *            The Http request, whose data parameter carries the slots as JSON
-     * @return The JSON answer: success, or the error to show
+     * @return The url of the desk screen, which shows the error if any
      */
     @Action( ACTION_OPEN_APPOINTMENTDESK )
     public String doOpenAppointmentDesk( HttpServletRequest request )
@@ -307,11 +305,10 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
      *            The Http request, whose data parameter carries the slots as JSON
      * @param operation
      *            The operation on the slots
-     * @return The JSON answer: success, or the error to show
+     * @return The url of the desk screen, on the day the request came from, which shows the error if any
      */
     private String processSlots( HttpServletRequest request, Consumer<List<Slot>> operation )
     {
-        ObjectNode json = MAPPER.createObjectNode( );
         List<Slot> listSlots;
         try
         {
@@ -326,8 +323,8 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         }
         if ( listSlots == null || listSlots.isEmpty( ) )
         {
-            json.put( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_PARSING_JSON, getLocale( ) ) );
-            return json.toString( );
+            addError( PROPERTY_MESSAGE_ERROR_PARSING_JSON, getLocale( ) );
+            return redirectToManageAppointmentDesks( request );
         }
         for ( Slot slot : listSlots )
         {
@@ -336,14 +333,29 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
             if ( ( slot.getIdSlot( ) != 0 && stored == null ) || !RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, Integer.toString( nIdForm ),
                     AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM, (User) getUser( ) ) )
             {
-                json.put( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_ACCESS_DENIED, getLocale( ) ) );
-                return json.toString( );
+                addError( PROPERTY_MESSAGE_ERROR_ACCESS_DENIED, getLocale( ) );
+                return redirectToManageAppointmentDesks( request );
             }
             slot.setIdForm( nIdForm );
         }
         operation.accept( listSlots );
-        json.put( JSON_KEY_SUCCESS, JSON_KEY_SUCCESS );
-        return json.toString( );
+        return redirectToManageAppointmentDesks( request );
+    }
+
+    /**
+     * Redirect to the desk screen of the form, on the day and in the context the request came from
+     *
+     * @param request
+     *            The Http request
+     * @return The url of the desk screen
+     */
+    private String redirectToManageAppointmentDesks( HttpServletRequest request )
+    {
+        Map<String, String> mapParameters = new HashMap<>( );
+        mapParameters.put( PARAMETER_ID_FORM, StringUtils.defaultString( request.getParameter( PARAMETER_ID_FORM ) ) );
+        mapParameters.put( PARAMETER_DATE_DAY, StringUtils.defaultString( request.getParameter( PARAMETER_DATE_DAY ) ) );
+        mapParameters.put( PARAMETER_CONTEXT, StringUtils.defaultString( request.getParameter( PARAMETER_CONTEXT ) ) );
+        return redirect( request, VIEW_MANAGE_APPOINTMENTDESKS, mapParameters );
     }
 
     /**

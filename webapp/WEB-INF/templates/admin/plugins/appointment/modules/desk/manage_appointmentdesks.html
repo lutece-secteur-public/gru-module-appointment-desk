@@ -294,15 +294,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
 			if (slotsToUpdate.length === 0) { modal.hide(); return; }
 
-			fetch(navUrl, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-				body: 'action=' + action + '&_csrftoken=' + encodeURIComponent(token) + '&data=' + encodeURIComponent(JSON.stringify(slotsToUpdate)),
-				credentials: 'same-origin'
-			}).finally(function() {
-				modal.hide();
-				window.location.href = navUrl + '?id_form=' + idForm + '&day=' + currentDay + '&context=' + context;
+			/* Post the slots as a form: the action redirects to this screen, with its error message if any */
+			const postForm = document.createElement('form');
+			postForm.method = 'post';
+			postForm.action = navUrl;
+			const fields = { action: action, _csrftoken: token, data: JSON.stringify(slotsToUpdate), id_form: idForm, day: currentDay, context: context };
+			Object.keys(fields).forEach(function(name) {
+				const input = document.createElement('input');
+				input.type = 'hidden';
+				input.name = name;
+				input.value = fields[name];
+				postForm.appendChild(input);
 			});
+			document.body.appendChild(postForm);
+			modal.hide();
+			postForm.submit();
 		}, { once: true });
 	}
 
