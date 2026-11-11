@@ -11,10 +11,10 @@
 	<@messages errors=errors warnings=warnings infos=infos />
 	<@div class='d-flex justify-content-end mb-2'>
 		<#if permission_add_comment?boolean>
-			<@button id='toggle-add-comment' color='light' size='sm' class='me-1' buttonIcon='message-plus' title='#i18n{appointment.create_comment.pageTitle}' hideTitle=['xs','sm'] params='data-bs-toggle="modal" data-bs-target="#commentModal"' />
+			<@button id='toggle-add-comment' color='light' size='sm' class='me-1' buttonIcon='message-plus' title='#i18n{appointment.create_comment.pageTitle}' hideTitle=['xs','sm'] params={"data-bs-toggle": "modal", "data-bs-target": "#commentModal"} />
 		</#if>
 		<#if activateEditMode>
-			<@button type='button' id='btn-add-desk' color='light' size='sm' buttonIcon='desktop' title='#i18n{module.appointment.desk.manage_appointmentdesks.buttonAdd}' params='data-bs-toggle="modal" data-bs-target="#deskModal"' />
+			<@button type='button' id='btn-add-desk' color='light' size='sm' buttonIcon='desktop' title='#i18n{module.appointment.desk.manage_appointmentdesks.buttonAdd}' params={"data-bs-toggle": "modal", "data-bs-target": "#deskModal"} />
 		</#if>
 	</@div>
 	<@div id='ec-calendar'></@div>
@@ -29,7 +29,7 @@
 		</@div>
 		<@div class='text-center'>
 			<@button id='saveSlotState' color='primary' title='#i18n{module.appointment.desk.label.save}' />
-			<@button id='cancelSlotState' color='light' title='#i18n{module.appointment.desk.label.cancel}' params='data-bs-dismiss="modal"' />
+			<@button id='cancelSlotState' color='light' title='#i18n{module.appointment.desk.label.cancel}' params={"data-bs-dismiss": "modal"} />
 		</@div>
 	</@modalBody>
 </@modal>
@@ -62,7 +62,7 @@
 		</@formGroup>
 	</@modalBody>
 	<@modalFooter>
-		<@button type='button' color='light' title='#i18n{module.appointment.desk.label.cancel}' params='data-bs-dismiss="modal"' />
+		<@button type='button' color='light' title='#i18n{module.appointment.desk.label.cancel}' params={"data-bs-dismiss": "modal"} />
 		<@button type='submit' name='save' id='save' buttonIcon='check' title='#i18n{module.appointment.desk.increment.labelValidate}' />
 	</@modalFooter>
 	</@tform>
@@ -73,7 +73,7 @@
 <script src="themes/shared/plugins/appointment/modules/desk/event-calendar.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-	const currentDayLocale = '${day!}';
+	const currentDayLocale = '${(day!)?js_string?no_esc}';
 	/* Convert locale date (dd/MM/yyyy) to ISO (yyyy-MM-dd), fallback to today */
 	const currentDay = (function(d) {
 		if (!d) {
@@ -88,14 +88,14 @@ document.addEventListener('DOMContentLoaded', function() {
 		var now = new Date();
 		return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
 	})(currentDayLocale);
-	const idForm = '${idForm!1}';
-	const context = '${context!}';
-	const nDesks = Math.max(${numb_desk!0}, 1);
+	const idForm = '${(idForm!1)?c}';
+	const context = '${(context!)?js_string?no_esc}';
+	const nDesks = Math.max(${(numb_desk!0)?c}, 1);
 	/* Compute min/max time from slots */
 	const slotTimes = [
 	<#if list_slot?has_content>
 		<#list list_slot?sort_by('startingDateTime') as slot>
-		{ start: '${slot.startingDateTime?datetime.iso?string["HH:mm"]}', end: '${slot.endingDateTime?datetime.iso?string["HH:mm"]}' },
+		{ start: '${slot.startingDateTime?datetime.iso?string["HH:mm"]?js_string?no_esc}', end: '${slot.endingDateTime?datetime.iso?string["HH:mm"]?js_string?no_esc}' },
 		</#list>
 	</#if>
 	];
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		minTime = slotTimes.reduce(function(m, s) { return s.start < m ? s.start : m; }, '23:59');
 		maxTime = slotTimes.reduce(function(m, s) { return s.end > m ? s.end : m; }, '00:00');
 	}
-	const locale = '${language!}';
+	const locale = '${(language!)?js_string?no_esc}';
 	const isMultiSlot = ${appointmentForm.isMultislotAppointment!?c};
 	const activateEditMode = <#if activateEditMode>true<#else>false</#if>;
 	const appUrlDetail = 'jsp/admin/plugins/appointment/ManageAppointments.jsp?view=viewAppointment&id_form=' + idForm + '&id_appointment=';
@@ -113,9 +113,9 @@ document.addEventListener('DOMContentLoaded', function() {
 	/* Build resources: 1 per desk + 1 surbook */
 	const resources = [];
 	for (let i = 1; i <= nDesks; i++) {
-		resources.push({ id: 'desk-' + i, title: '#i18n{module.appointment.desk.label.desk} ' + i });
+		resources.push({ id: 'desk-' + i, title: '${i18n('module.appointment.desk.label.desk')?js_string?no_esc} ' + i });
 	}
-	resources.push({ id: 'surbook', title: '#i18n{module.appointment.desk.label.surbooking}' });
+	resources.push({ id: 'surbook', title: '${i18n('module.appointment.desk.label.surbooking')?js_string?no_esc}' });
 
 	/* Build background events for slots (open/closed) */
 	const slotEvents = [
@@ -123,18 +123,18 @@ document.addEventListener('DOMContentLoaded', function() {
 		<#list list_slot?sort_by('startingDateTime') as slot>
 			<#list 1..numb_desk as seq>
 		{
-			start: '${slot.startingDateTime}',
-			end: '${slot.endingDateTime}',
-			resourceIds: ['desk-${seq}'],
+			start: '${slot.startingDateTime?js_string?no_esc}',
+			end: '${slot.endingDateTime?js_string?no_esc}',
+			resourceIds: ['desk-${seq?c}'],
 			display: 'background',
 			color: <#if slot.isOpen && (seq <= slot.maxCapacity)>'rgba(25, 135, 84, 0.4)'<#else>'rgba(220, 53, 69, 0.4)'</#if>,
 			extendedProps: {
-				idSlot: ${slot.idSlot!0},
-				maxCapacity: ${slot.maxCapacity},
+				idSlot: ${(slot.idSlot!0)?c},
+				maxCapacity: ${slot.maxCapacity?c},
 				isOpen: <#if slot.isOpen && (seq <= slot.maxCapacity)>true<#else>false</#if>,
 				isSpecific: ${slot.isSpecific?c},
-				idForm: ${slot.idForm!1},
-				desk: ${seq}
+				idForm: ${(slot.idForm!1)?c},
+				desk: ${seq?c}
 			}
 		},
 			</#list>
@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	/* Build appointment events */
 	const appointmentEvents = [];
-	const appointments = [<#list list_appointment?sort_by('appointmentTakenSqlDate')?reverse?sort_by('nbPlaces')?reverse as app><#compress>{"id":${app.idAppointment},"lastName":"${app.user.lastName?js_string}","firstName":"${app.user.firstName?js_string}","places":${app.nbPlaces},"slots":[<#list app.slot?sort_by('startingDateTime') as slot>{"id":${slot.idSlot},"start":"${slot.startingDateTime}","end":"${slot.endingDateTime}"},</#list>]},</#compress></#list>];
+	const appointments = [<#list list_appointment?sort_by('appointmentTakenSqlDate')?reverse?sort_by('nbPlaces')?reverse as app><#compress>{"id":${app.idAppointment?c},"lastName":"${(app.user.lastName!)?js_string?no_esc}","firstName":"${(app.user.firstName!)?js_string?no_esc}","places":${app.nbPlaces?c},"slots":[<#list app.slot?sort_by('startingDateTime') as slot>{"id":${slot.idSlot?c},"start":"${slot.startingDateTime?js_string?no_esc}","end":"${slot.endingDateTime?js_string?no_esc}"},</#list>]},</#compress></#list>];
 
 	/* Check if a desk is open for a given slot start time */
 	function isDeskOpen(deskNum, slotStart) {
@@ -205,26 +205,27 @@ document.addEventListener('DOMContentLoaded', function() {
 	const commentEvents = [];
 	<#if list_comments?has_content>
 	<#list list_comments as comment>
-	<#assign comment_title = ( comment.comment! )?replace( '\r', '' )?replace( '\n', ' ' )>
+	<#-- The comment is rich text: sanitized, then written as a JavaScript string; the calendar shows it as HTML -->
+	<#assign comment_title = richText( comment.comment! )?markup_string?replace( '\r', '' )?replace( '\n', ' ' )>
 	commentEvents.push({
-		id: 'comment-${comment.id!}',
+		id: 'comment-${(comment.id!0)?c}',
 		start: currentDay,
 		end: currentDay,
 		resourceIds: [resources[0].id],
-		title: '${comment_title!?js_string}',
+		title: '${comment_title?js_string?no_esc}',
 		allDay: true,
 		color: 'rgba(233, 250, 0, 0.8)',
 		textColor: '#856404',
 		extendedProps: {
 			type: 'comment',
-			author: '${(comment.creatorUserName!)?js_string}',
+			author: '${(comment.creatorUserName!)?js_string?no_esc}',
 			data: {
-				id_comment: '${comment.id}',
-				comment_text: '${comment_title!?js_string}',
-				comment_start: '${(comment.startingValidityDate!)?js_string}',
-				comment_start_time: '${(comment.startingValidityTime!)?js_string}',
-				comment_end: '${(comment.endingValidityDate!)?js_string}',
-				comment_end_time: '${(comment.endingValidityTime!)?js_string}'
+				id_comment: '${comment.id?c}',
+				comment_text: '${comment_title?js_string?no_esc}',
+				comment_start: '${(comment.startingValidityDate!)?js_string?no_esc}',
+				comment_start_time: '${(comment.startingValidityTime!)?js_string?no_esc}',
+				comment_end: '${(comment.endingValidityDate!)?js_string?no_esc}',
+				comment_end_time: '${(comment.endingValidityTime!)?js_string?no_esc}'
 			}
 		}
 	});
@@ -233,8 +234,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	const allEvents = slotEvents.concat(appointmentEvents).concat(commentEvents);
 
-	const labelClosed = '#i18n{module.appointment.desk.label.close}';
-	const labelOpen = '#i18n{module.appointment.desk.label.open}';
+	const labelClosed = '${i18n('module.appointment.desk.label.close')?js_string?no_esc}';
+	const labelOpen = '${i18n('module.appointment.desk.label.open')?js_string?no_esc}';
 
 	/* Open/close slot toggle modal */
 	function toISO(d) {
@@ -273,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			document.getElementById('saveSlotState').removeEventListener('click', onClick);
 			const doOpen = document.querySelector('#slottoggle .modal-body input:checked').value == 1;
 			const action = doOpen ? 'openAppointmentDesk' : 'closeAppointmentDesk';
-			const token = doOpen ? '${token_open_desk!}' : '${token_close_desk!}';
+			const token = doOpen ? '${(token_open_desk!)?js_string?no_esc}' : '${(token_close_desk!)?js_string?no_esc}';
 
 			/* For each slot in range: adjust maxCapacity by +1 (open) or -1 (close) */
 			const slotsToUpdate = refSlots.map(function(ev) {
@@ -320,16 +321,16 @@ document.addEventListener('DOMContentLoaded', function() {
 		locale: locale,
 		slotMinTime: minTime,
 		slotMaxTime: maxTime,
-		slotDuration: '00:${appointmentForm.durationAppointments!30}:00',
+		slotDuration: '00:${(appointmentForm.durationAppointments!30)?c}:00',
 		allDaySlot: true,
-		allDayContent: '#i18n{module.appointment.desk.label.allDay}',
+		allDayContent: '${i18n('module.appointment.desk.label.allDay')?js_string?no_esc}',
 		headerToolbar: {
 			start: 'prev',
 			center: 'title',
 			end: 'today next'
 		},
 		buttonText: {
-			today: "#i18n{appointment.appointmentCalendar.labelToday}"
+			today: '${i18n('appointment.appointmentCalendar.labelToday')?js_string?no_esc}'
 		},
 		resources: resources,
 		events: allEvents,
@@ -347,8 +348,8 @@ document.addEventListener('DOMContentLoaded', function() {
 			const ep = info.event.extendedProps;
 			if (ep.type === 'comment') {
 				/* Comment click — edit/delete */
-				const isCommentModerator = ${permission_moderate_comment};
-				if (ep.author === '${permission_access_code?js_string}' || isCommentModerator) {
+				const isCommentModerator = ${(permission_moderate_comment!'false')?boolean?c};
+				if (ep.author === '${(permission_access_code!)?js_string?no_esc}' || isCommentModerator) {
 					const formValues = ep.data;
 					const modifyModalEl = document.getElementById('modify-comment');
 					const commentModal = bootstrap.Modal.getOrCreateInstance(modifyModalEl);
