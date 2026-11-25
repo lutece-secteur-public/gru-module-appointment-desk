@@ -36,6 +36,7 @@ package fr.paris.lutece.plugins.appointment.modules.desk.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -88,27 +89,49 @@ public class AppointmentDeskService
 
     /**
      * Remove one desk from the slots of a day: each stored slot whose capacity reaches the desk loses one place. Nothing is removed when one of
-     * these slots has no free place left, since the appointments booked on it would lose their desk.
+     * these slots has no free place left, since the appointments booked on it would lose their desk, nor when no slot reaches the desk. The
+     * slots are read again under their locks, so that a booking made after the screen read them is seen.
      *
      * @param listSlot
      *            the slots of the day
      * @param nDesk
      *            the number of the desk, from 1
-     * @return true when the desk is removed, false when appointments are booked on it
+     * @return true when the desk is removed, false when appointments are booked on it or when no slot has this desk
      */
     public static boolean removeAppointmentDesk( List<Slot> listSlot, int nDesk )
     {
-        List<Slot> listDeskSlots = listSlot.stream( ).filter( slot -> slot.getIdSlot( ) != 0 && slot.getMaxCapacity( ) >= nDesk )
+        // the locks are always taken in the order of the ids of the slots
+        List<Integer> listIdSlots = listSlot.stream( ).map( Slot::getIdSlot ).filter( nIdSlot -> nIdSlot != 0 ).distinct( ).sorted( )
                 .collect( Collectors.toList( ) );
-        if ( listDeskSlots.stream( ).anyMatch( slot -> Math.min( slot.getNbRemainingPlaces( ), slot.getNbPotentialRemainingPlaces( ) ) < 1 ) )
+        List<Lock> listLocks = new ArrayList<>( );
+        try
         {
-            return false;
+            for ( int nIdSlot : listIdSlots )
+            {
+                Lock lock = SlotSafeService.getLockOnSlot( nIdSlot );
+                lock.lock( );
+                listLocks.add( lock );
+            }
+            List<Slot> listDeskSlots = listIdSlots.stream( ).map( SlotService::findSlotById ).filter( Objects::nonNull )
+                    .filter( slot -> slot.getMaxCapacity( ) >= nDesk ).collect( Collectors.toList( ) );
+            if ( listDeskSlots.isEmpty( )
+                    || listDeskSlots.stream( ).anyMatch( slot -> Math.min( slot.getNbRemainingPlaces( ), slot.getNbPotentialRemainingPlaces( ) ) < 1 ) )
+            {
+                return false;
+            }
+            for ( Slot slot : listDeskSlots )
+            {
+                changeCapacity( slot.getIdSlot( ), -1, Integer.MAX_VALUE );
+            }
+            return true;
         }
-        for ( Slot slot : listDeskSlots )
+        finally
         {
-            changeCapacity( slot.getIdSlot( ), -1, Integer.MAX_VALUE );
+            for ( int i = listLocks.size( ) - 1; i >= 0; i-- )
+            {
+                listLocks.get( i ).unlock( );
+            }
         }
-        return true;
     }
 
     /**

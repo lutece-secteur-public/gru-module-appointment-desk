@@ -45,6 +45,7 @@ import org.junit.jupiter.api.Test;
 import fr.paris.lutece.plugins.appointment.business.calendar.CalendarTemplate;
 import fr.paris.lutece.plugins.appointment.business.calendar.CalendarTemplateHome;
 import fr.paris.lutece.plugins.appointment.business.slot.Slot;
+import fr.paris.lutece.plugins.appointment.business.slot.SlotHome;
 import fr.paris.lutece.plugins.appointment.service.FormService;
 import fr.paris.lutece.plugins.appointment.service.SlotService;
 import fr.paris.lutece.plugins.appointment.service.WeekDefinitionService;
@@ -152,6 +153,47 @@ public class AppointmentDeskServiceTest extends LuteceTestCase
         AppointmentDeskService.openAppointmentDesk( List.of( sentByTheScreen( slot, 1 ) ) );
 
         assertEquals( 1, slotAt( 10 ).getMaxCapacity( ) );
+    }
+
+    /**
+     * A booking made after the desk screen read the slots: the desk is not removed, the slot does not go below zero free
+     * places
+     */
+    @Test
+    public void testRemoveADeskBookedMeanwhile( )
+    {
+        Slot slot = slotAt( 10 );
+        AppointmentDeskService.openAppointmentDesk( List.of( sentByTheScreen( slot, DESKS + 1 ) ), DESKS + 1 );
+        setRemainingPlaces( slotAt( 10 ).getIdSlot( ), 1 );
+        // the slots read by the screen, then a booking takes the last free place
+        List<Slot> listReadByTheScreen = daySlots( );
+        setRemainingPlaces( slotAt( 10 ).getIdSlot( ), 0 );
+
+        assertFalse( AppointmentDeskService.removeAppointmentDesk( listReadByTheScreen, DESKS + 1 ) );
+        Slot stored = SlotService.findSlotById( slotAt( 10 ).getIdSlot( ) );
+        assertEquals( DESKS + 1, stored.getMaxCapacity( ) );
+        assertEquals( 0, stored.getNbRemainingPlaces( ) );
+    }
+
+    /**
+     * A desk number above the capacity of every slot of the day removes nothing and is not reported as removed
+     */
+    @Test
+    public void testRemoveADeskThatDoesNotExist( )
+    {
+        Slot slot = slotAt( 10 );
+        AppointmentDeskService.openAppointmentDesk( List.of( sentByTheScreen( slot, DESKS + 1 ) ), DESKS + 1 );
+
+        assertFalse( AppointmentDeskService.removeAppointmentDesk( daySlots( ), DESKS + 5 ) );
+        assertEquals( DESKS + 1, slotAt( 10 ).getMaxCapacity( ) );
+    }
+
+    private static void setRemainingPlaces( int nIdSlot, int nPlaces )
+    {
+        Slot slot = SlotService.findSlotById( nIdSlot );
+        slot.setNbRemainingPlaces( nPlaces );
+        slot.setNbPotentialRemainingPlaces( nPlaces );
+        SlotHome.update( slot );
     }
 
     private List<Slot> daySlots( )
