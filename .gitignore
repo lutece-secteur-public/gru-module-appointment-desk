@@ -5,3 +5,8 @@ webapp/WEB-INF/conf/db.properties
 .project
 logs
 java.io.tmpdir/
+target/
+logs/
+.migration/
+*.log
+e2e/
