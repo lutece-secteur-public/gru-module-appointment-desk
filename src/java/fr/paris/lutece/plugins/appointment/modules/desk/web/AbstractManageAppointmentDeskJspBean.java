@@ -67,7 +67,6 @@
 
 package fr.paris.lutece.plugins.appointment.modules.desk.web;
 
-import fr.paris.lutece.portal.service.util.AppPropertiesService;
 import fr.paris.lutece.portal.util.mvc.admin.MVCAdminJspBean;
 import fr.paris.lutece.portal.web.cdi.mvc.Models;
 import fr.paris.lutece.portal.web.util.LocalizedPaginator;
@@ -75,7 +74,10 @@ import fr.paris.lutece.util.html.AbstractPaginator;
 import fr.paris.lutece.util.url.UrlItem;
 
 import java.util.List;
+import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
+
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /**
  * ManageAppointmentDesk JSP Bean abstract class for JSP Bean
@@ -104,6 +106,10 @@ public abstract class AbstractManageAppointmentDeskJspBean extends MVCAdminJspBe
     private String _strCurrentPageIndex;
     private int _nItemsPerPage;
 
+    @Inject
+    @ConfigProperty( name = PROPERTY_DEFAULT_LIST_ITEM_PER_PAGE, defaultValue = "50" )
+    private int _nDefaultItemsPerPage;
+
     /**
      * Return a model that contains the list and paginator infos
      * 
@@ -119,9 +125,8 @@ public abstract class AbstractManageAppointmentDeskJspBean extends MVCAdminJspBe
      */
     protected <T> void getPaginatedListModel( HttpServletRequest request, String strBookmark, List<T> list, String strManageJsp, Models models )
     {
-        int nDefaultItemsPerPage = AppPropertiesService.getPropertyInt( PROPERTY_DEFAULT_LIST_ITEM_PER_PAGE, 50 );
         _strCurrentPageIndex = AbstractPaginator.getPageIndex( request, AbstractPaginator.PARAMETER_PAGE_INDEX, _strCurrentPageIndex );
-        _nItemsPerPage = AbstractPaginator.getItemsPerPage( request, AbstractPaginator.PARAMETER_ITEMS_PER_PAGE, _nItemsPerPage, nDefaultItemsPerPage );
+        _nItemsPerPage = AbstractPaginator.getItemsPerPage( request, AbstractPaginator.PARAMETER_ITEMS_PER_PAGE, _nItemsPerPage, _nDefaultItemsPerPage );
 
         UrlItem url = new UrlItem( strManageJsp );
         String strUrl = url.getUrl( );
