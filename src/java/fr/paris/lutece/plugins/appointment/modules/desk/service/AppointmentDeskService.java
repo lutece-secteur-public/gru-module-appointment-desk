@@ -33,21 +33,27 @@
  */
 package fr.paris.lutece.plugins.appointment.modules.desk.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
 import fr.paris.lutece.plugins.appointment.business.planning.ClosingDay;
+import fr.paris.lutece.plugins.appointment.business.rule.ReservationRule;
 import fr.paris.lutece.plugins.appointment.business.slot.Slot;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.AppointmentDeskPlugin;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.IncrementSlot;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.IncrementingType;
 import fr.paris.lutece.plugins.appointment.service.ClosingDayService;
+import fr.paris.lutece.plugins.appointment.service.ReservationRuleService;
 import fr.paris.lutece.plugins.appointment.service.SlotSafeService;
 import fr.paris.lutece.plugins.appointment.service.SlotService;
+import fr.paris.lutece.plugins.appointment.service.WeekDefinitionService;
 import fr.paris.lutece.portal.service.util.AppLogService;
 import fr.paris.lutece.util.sql.TransactionManager;
 
@@ -59,6 +65,47 @@ public class AppointmentDeskService
      */
     private AppointmentDeskService( )
     {
+    }
+
+    /**
+     * Get the capacity per slot the planning of a form gives on a day: the desks beyond it were added on the desk screen.
+     *
+     * @param nIdForm
+     *            the id of the form
+     * @param day
+     *            the day
+     * @return the planned number of desks, 0 when no planning applies on that day
+     */
+    public static int getPlannedCapacity( int nIdForm, LocalDate day )
+    {
+        return WeekDefinitionService.findWeekDefinitionByDateOfApply( nIdForm, day, day ).stream( )
+                .map( weekDefinition -> ReservationRuleService.findReservationRuleById( weekDefinition.getIdReservationRule( ) ) )
+                .filter( Objects::nonNull ).mapToInt( ReservationRule::getMaxCapacityPerSlot ).max( ).orElse( 0 );
+    }
+
+    /**
+     * Remove one desk from the slots of a day: each stored slot whose capacity reaches the desk loses one place. Nothing is removed when one of
+     * these slots has no free place left, since the appointments booked on it would lose their desk.
+     *
+     * @param listSlot
+     *            the slots of the day
+     * @param nDesk
+     *            the number of the desk, from 1
+     * @return true when the desk is removed, false when appointments are booked on it
+     */
+    public static boolean removeAppointmentDesk( List<Slot> listSlot, int nDesk )
+    {
+        List<Slot> listDeskSlots = listSlot.stream( ).filter( slot -> slot.getIdSlot( ) != 0 && slot.getMaxCapacity( ) >= nDesk )
+                .collect( Collectors.toList( ) );
+        if ( listDeskSlots.stream( ).anyMatch( slot -> Math.min( slot.getNbRemainingPlaces( ), slot.getNbPotentialRemainingPlaces( ) ) < 1 ) )
+        {
+            return false;
+        }
+        for ( Slot slot : listDeskSlots )
+        {
+            changeCapacity( slot.getIdSlot( ), -1, Integer.MAX_VALUE );
+        }
+        return true;
     }
 
     /**

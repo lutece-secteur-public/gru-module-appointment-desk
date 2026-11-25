@@ -169,8 +169,7 @@ public class AppointmentDeskTemplatesRenderTest extends LuteceTestCase
         model.put( "permission_add_comment", "true" );
         model.put( "permission_moderate_comment", "false" );
         model.put( "permission_access_code", NAME );
-        model.put( "token_open_desk", "T1" );
-        model.put( "token_close_desk", "T2" );
+        model.put( "_csrftoken", "T1" );
 
         return model;
     }
@@ -178,7 +177,7 @@ public class AppointmentDeskTemplatesRenderTest extends LuteceTestCase
     /**
      * The values written in the script are escaped for JavaScript, not for HTML: a quote cannot end the string, the
      * script element cannot be closed, and no entity is left in the data. The numbers are written without grouping, the
-     * messages through i18n().
+     * messages through i18n(). The open and close forms post the token of the page.
      *
      * @throws Exception
      *             if the rendering fails
@@ -195,6 +194,7 @@ public class AppointmentDeskTemplatesRenderTest extends LuteceTestCase
         assertFalse( strHtml.contains( "&quot;Jo" ), strHtml );
         assertTrue( strHtml.contains( "\"id\":5678" ), strHtml );
         assertTrue( strHtml.contains( "idSlot: 1234," ), strHtml );
+        assertTrue( strHtml.contains( "const token = 'T1';" ), strHtml );
         assertTrue( strHtml.contains( "const idForm = '1001';" ), strHtml );
         assertTrue( strHtml.contains( "title: 'module.appointment.desk.label.surbooking'" ), strHtml );
         assertTrue( strHtml.contains( "const isCommentModerator = false;" ), strHtml );
@@ -264,5 +264,45 @@ public class AppointmentDeskTemplatesRenderTest extends LuteceTestCase
         assertTrue( strHtml.contains( "#i18n{module.appointment.desk.manage_appointmentdesks.noSlot}" ), strHtml );
         assertTrue( strHtml.contains( "id=\"desk-no-slot\"" ), strHtml );
         assertFalse( strHtml.contains( "selectable: true" ), strHtml );
+    }
+
+    /**
+     * The desks beyond the planned capacity get a remove button: the script knows the planned capacity, and the confirmation is a form posting
+     * the remove action, so the core gives it the token of the page.
+     *
+     * @throws Exception
+     *             if the rendering fails
+     */
+    @Test
+    public void testRemoveDeskFormAndPlannedCapacity( ) throws Exception
+    {
+        Map<String, Object> model = model( );
+        model.put( "plannedCapacity", 1 );
+
+        String strHtml = render( TEMPLATE_MANAGE_DESKS, model );
+
+        assertTrue( strHtml.contains( "const plannedCapacity = 1;" ), strHtml );
+        assertTrue( strHtml.contains( "id=\"removeDeskModal\"" ), strHtml );
+        assertTrue( strHtml.contains( "value=\"removeAppointmentDesk\"" ), strHtml );
+        assertTrue( strHtml.contains( "name=\"desk\"" ), strHtml );
+        assertTrue( strHtml.contains( "value=\"1001\"" ), strHtml );
+    }
+
+    /**
+     * Without the right to modify the form, the page has neither the remove form nor the remove buttons.
+     *
+     * @throws Exception
+     *             if the rendering fails
+     */
+    @Test
+    public void testNoRemoveDeskWithoutEditMode( ) throws Exception
+    {
+        Map<String, Object> model = model( );
+        model.put( "activateEditMode", false );
+
+        String strHtml = render( TEMPLATE_MANAGE_DESKS, model );
+
+        assertFalse( strHtml.contains( "id=\"removeDeskModal\"" ), strHtml );
+        assertTrue( strHtml.contains( "const activateEditMode = false;" ), strHtml );
     }
 }

@@ -70,6 +70,23 @@
 	</@modalFooter>
 	</@tform>
 </@modal>
+<@modal id='removeDeskModal'>
+	<@modalHeader modalTitle='#i18n{module.appointment.desk.removeDesk.title}' />
+	<@tform id='form-remove-desk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp'>
+	<@modalBody>
+		<@input type='hidden' name='action' value='removeAppointmentDesk' />
+		<@input type='hidden' name='id_form' value='${(idForm!0)?c}' />
+		<@input type='hidden' id='remove-desk-day' name='day' value='' />
+		<@input type='hidden' id='remove-desk-number' name='desk' value='' />
+		<@div class='fw-bold mb-2' id='remove-desk-name'></@div>
+		<@div>#i18n{module.appointment.desk.removeDesk.confirm}</@div>
+	</@modalBody>
+	<@modalFooter>
+		<@button type='button' color='light' title='#i18n{module.appointment.desk.label.cancel}' params={"data-bs-dismiss": "modal"} />
+		<@button type='submit' id='remove-desk-submit' color='danger' buttonIcon='trash' title='#i18n{module.appointment.desk.label.removeDesk}' />
+	</@modalFooter>
+	</@tform>
+</@modal>
 </#if>
 <@getCommentModal 'commentModal' '#i18n{appointment.create_comment.pageTitle}' "comment" "startingValidityDate" "endingValidityDate" "idStartingTime" "idEndingTime" "doAddComment" idForm mailing_list locale "appointmentdesk" '${context!}-${day!}' />
 <@getCommentModal 'modify-comment' '#i18n{appointment.modify_comment.pageTitle}' "modifyComment" "modifyStartingValidityDate" "modifyEndingValidityDate" "idModifyStartingTime" "idModifyEndingTime" "doModifyComment" idForm mailing_list locale "appointmentdesk" '${context!}-${day!}' />
@@ -237,6 +254,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	const allEvents = slotEvents.concat(appointmentEvents).concat(commentEvents);
 
+	<#if activateEditMode>
+	/* The desks beyond the planning of the form were added on this screen: each can be removed for the day */
+	const plannedCapacity = ${(plannedCapacity!0)?c};
+	const labelRemoveDesk = '${i18n('module.appointment.desk.label.removeDesk')?js_string?no_esc}';
+	function deskNumber(resource) {
+		const match = /^desk-(\d+)$/.exec(String(resource && resource.id));
+		return match ? Number(match[1]) : 0;
+	}
+	function openRemoveDeskModal(nDesk, strTitle) {
+		const deskField = document.getElementById('remove-desk-number');
+		const dayField = document.getElementById('remove-desk-day');
+		const nameField = document.getElementById('remove-desk-name');
+		const removeModalEl = document.getElementById('removeDeskModal');
+		if (!(deskField && dayField && nameField && removeModalEl !== null)) { return; }
+		deskField.value = nDesk;
+		dayField.value = currentDay;
+		nameField.textContent = strTitle;
+		bootstrap.Modal.getOrCreateInstance(removeModalEl).show();
+	}
+	</#if>
+
 	const labelClosed = '${i18n('module.appointment.desk.label.close')?js_string?no_esc}';
 	const labelOpen = '${i18n('module.appointment.desk.label.open')?js_string?no_esc}';
 
@@ -277,7 +315,8 @@ document.addEventListener('DOMContentLoaded', function() {
 			document.getElementById('saveSlotState').removeEventListener('click', onClick);
 			const doOpen = document.querySelector('#slottoggle .modal-body input:checked').value == 1;
 			const action = doOpen ? 'openAppointmentDesk' : 'closeAppointmentDesk';
-			const token = doOpen ? '${(token_open_desk!)?js_string?no_esc}' : '${(token_close_desk!)?js_string?no_esc}';
+			/* The open and close actions accept the token of the page (securityTokenAction of their @Action) */
+			const token = '${(_csrftoken!)?js_string?no_esc}';
 
 			/* For each slot in range: adjust maxCapacity by +1 (open) or -1 (close) */
 			const slotsToUpdate = refSlots.map(function(ev) {
@@ -336,6 +375,31 @@ document.addEventListener('DOMContentLoaded', function() {
 			today: '${i18n('appointment.appointmentCalendar.labelToday')?js_string?no_esc}'
 		},
 		resources: resources,
+		<#if activateEditMode>
+		resourceLabelContent: function(info) {
+			const label = document.createElement('span');
+			label.textContent = info.resource.title || '';
+			const nDesk = deskNumber(info.resource);
+			if (nDesk <= plannedCapacity) {
+				return { domNodes: [ label ] };
+			}
+			const button = document.createElement('button');
+			button.type = 'button';
+			button.className = 'btn btn-sm btn-ghost-danger ms-1 p-0 lh-1 align-baseline desk-remove';
+			button.dataset.desk = String(nDesk);
+			button.title = labelRemoveDesk;
+			button.setAttribute('aria-label', labelRemoveDesk + ' ' + label.textContent);
+			const icon = document.createElement('i');
+			icon.className = 'ti ti-trash';
+			icon.setAttribute('aria-hidden', 'true');
+			button.appendChild(icon);
+			button.addEventListener('click', function(e) {
+				e.stopPropagation();
+				openRemoveDeskModal(nDesk, label.textContent);
+			});
+			return { domNodes: [ label, button ] };
+		},
+		</#if>
 		events: allEvents,
 		eventContent: function(info) {
 			const ep = info.event.extendedProps || {};

@@ -58,8 +58,6 @@ import fr.paris.lutece.portal.service.i18n.I18nService;
 import fr.paris.lutece.portal.service.mailinglist.AdminMailingListService;
 import fr.paris.lutece.portal.service.plugin.Plugin;
 import fr.paris.lutece.portal.service.rbac.RBACService;
-import fr.paris.lutece.portal.service.security.SecurityTokenHandler;
-import fr.paris.lutece.portal.service.security.SecurityTokenService;
 import fr.paris.lutece.portal.service.workgroup.AdminWorkgroupService;
 import fr.paris.lutece.portal.util.mvc.admin.annotations.Controller;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.Action;
@@ -69,6 +67,7 @@ import fr.paris.lutece.util.ReferenceList;
 import fr.paris.lutece.util.date.DateUtil;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.Date;
@@ -109,9 +108,6 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     @Inject
     private Models _models;
 
-    @Inject
-    private SecurityTokenService _securityTokenService;
-
     // Templates
     private static final String TEMPLATE_MANAGE_APPOINTMENTDESKS = "/admin/plugins/appointment/modules/desk/manage_appointmentdesks.html";
 
@@ -121,6 +117,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String PARAMETER_NUMB_DESK = "numb_desk";
     private static final String PARAMETER_DATE_DAY = "day";
     private static final String PARAMETER_DATA = "data";
+    private static final String PARAMETER_DESK = "desk";
 
     private static final String PARAMETER_ENDING_DATE = "ending_date";
     private static final String PARAMETER_STARTING_DATE = "starting_date";
@@ -145,8 +142,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String MARK_MAILING_LIST = "mailing_list";
     private static final String MARK_CONTEXT = "context";
     private static final String MARK_APPOINTMENT_DESK_ENABLED = "isDeskInstalled";
-    private static final String MARK_TOKEN_OPEN_DESK = "token_open_desk";
-    private static final String MARK_TOKEN_CLOSE_DESK = "token_close_desk";
+    private static final String MARK_PLANNED_CAPACITY = "plannedCapacity";
 
     // Properties
 
@@ -159,12 +155,15 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String ACTION_CLOSE_APPOINTMENTDESK = "closeAppointmentDesk";
     private static final String ACTION_OPEN_APPOINTMENTDESK = "openAppointmentDesk";
     private static final String ACTION_INCREMENT_MAX_CAPACITY = "incrementMaxCapacity";
+    private static final String ACTION_REMOVE_APPOINTMENTDESK = "removeAppointmentDesk";
 
     // Infos
 
     private static final String PROPERTY_MESSAGE_ERROR_PARSING_JSON = "module.appointment.desk.error.parsing.json";
     private static final String PROPERTY_MESSAGE_ERROR_ACCESS_DENIED = "module.appointment.desk.error.access.denied";
     private static final String PROPERTY_MESSAGE_ERROR_INCREMENT_INVALID = "module.appointment.desk.error.increment.invalid";
+    private static final String PROPERTY_MESSAGE_ERROR_REMOVE_DESK_INVALID = "module.appointment.desk.error.removeDesk.invalid";
+    private static final String PROPERTY_MESSAGE_ERROR_REMOVE_DESK_BOOKED = "module.appointment.desk.error.removeDesk.booked";
     private static final ObjectMapper MAPPER = new ObjectMapper( ).registerModule( new JavaTimeModule( ) )
             .configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
     // Session variable to store working values
@@ -273,9 +272,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
                 AppointmentResourceIdService.PERMISSION_MODERATE_COMMENT_FORM, user ) ) );
         _models.put( AppointmentUtilities.MARK_PERMISSION_ACCESS_CODE, user.getAccessCode( ) );
         _models.put( MARK_APPOINTMENT_DESK_ENABLED, ( moduleAppointmentDesk != null ) && moduleAppointmentDesk.isInstalled( ) );
-        _models.put( MARK_TOKEN_OPEN_DESK, _securityTokenService.getToken( request, ACTION_OPEN_APPOINTMENTDESK ) );
-        _models.put( MARK_TOKEN_CLOSE_DESK, _securityTokenService.getToken( request, ACTION_CLOSE_APPOINTMENTDESK ) );
-        _models.put( SecurityTokenHandler.MARK_CSRF_TOKEN, _securityTokenService.getToken( request, ACTION_INCREMENT_MAX_CAPACITY ) );
+        _models.put( MARK_PLANNED_CAPACITY, AppointmentDeskService.getPlannedCapacity( nIdForm, dateDay ) );
 
         return getPage( PROPERTY_PAGE_TITLE_MANAGE_APPOINTMENTDESKS, TEMPLATE_MANAGE_APPOINTMENTDESKS );
     }
@@ -287,7 +284,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
      *            The Http request, whose data parameter carries the slots as JSON
      * @return The url of the desk screen, which shows the error if any
      */
-    @Action( ACTION_CLOSE_APPOINTMENTDESK )
+    @Action( value = ACTION_CLOSE_APPOINTMENTDESK, securityTokenAction = ACTION_INCREMENT_MAX_CAPACITY )
     public String docloseAppointmentDesk( HttpServletRequest request )
     {
         return processSlots( request, AppointmentDeskService::closeAppointmentDesk );
@@ -300,10 +297,68 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
      *            The Http request, whose data parameter carries the slots as JSON
      * @return The url of the desk screen, which shows the error if any
      */
-    @Action( ACTION_OPEN_APPOINTMENTDESK )
+    @Action( value = ACTION_OPEN_APPOINTMENTDESK, securityTokenAction = ACTION_INCREMENT_MAX_CAPACITY )
     public String doOpenAppointmentDesk( HttpServletRequest request )
     {
         return processSlots( request, listSlots -> AppointmentDeskService.openAppointmentDesk( listSlots, _nMaxCapacity ) );
+    }
+
+    /**
+     * Remove a desk added beyond the planning of the form, on the day the desk screen shows. The desks of the planning cannot be removed here,
+     * nor a desk with appointments booked on it.
+     *
+     * @param request
+     *            The Http request, with the form, the day (yyyy-MM-dd) and the number of the desk
+     * @return The url of the desk screen, which shows the error if any
+     */
+    @Action( value = ACTION_REMOVE_APPOINTMENTDESK, securityTokenAction = ACTION_INCREMENT_MAX_CAPACITY )
+    public String doRemoveAppointmentDesk( HttpServletRequest request )
+    {
+        String strIdForm = request.getParameter( PARAMETER_ID_FORM );
+        int nIdForm = NumberUtils.toInt( strIdForm, -1 );
+        int nDesk = NumberUtils.toInt( request.getParameter( PARAMETER_DESK ), 0 );
+        Form form = FormService.findFormLightByPrimaryKey( nIdForm );
+        User user = getUser( );
+        if ( form == null || !RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, strIdForm,
+                AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM, user ) || !AdminWorkgroupService.isAuthorized( form, user ) )
+        {
+            addError( PROPERTY_MESSAGE_ERROR_ACCESS_DENIED, getLocale( ) );
+            return redirectToManageAppointmentDesks( request );
+        }
+        LocalDate day = parseIsoDate( request.getParameter( PARAMETER_DATE_DAY ) );
+        if ( day == null || nDesk <= AppointmentDeskService.getPlannedCapacity( nIdForm, day ) )
+        {
+            addError( PROPERTY_MESSAGE_ERROR_REMOVE_DESK_INVALID, getLocale( ) );
+        }
+        else if ( !AppointmentDeskService.removeAppointmentDesk(
+                SlotService.buildListSlot( nIdForm, WeekDefinitionService.findAllWeekDefinition( nIdForm ), day, day ), nDesk ) )
+        {
+            addError( PROPERTY_MESSAGE_ERROR_REMOVE_DESK_BOOKED, getLocale( ) );
+        }
+        return redirectToManageAppointmentDesks( request );
+    }
+
+    /**
+     * Parse a date written yyyy-MM-dd.
+     *
+     * @param strDate
+     *            The date
+     * @return The date, or null when it is missing or not valid
+     */
+    private static LocalDate parseIsoDate( String strDate )
+    {
+        if ( StringUtils.isEmpty( strDate ) )
+        {
+            return null;
+        }
+        try
+        {
+            return LocalDate.parse( strDate );
+        }
+        catch( DateTimeParseException e )
+        {
+            return null;
+        }
     }
 
     /**
