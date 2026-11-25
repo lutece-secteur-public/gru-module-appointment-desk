@@ -427,16 +427,23 @@ document.addEventListener('DOMContentLoaded', function() {
 						/* Set comment id */
 						document.querySelector('#modify-comment input[name="id_comment"]').value = formValues.id_comment;
 
-						/* Set comment text in textarea + TinyMCE */
+						/* Set comment text in the textarea and in the rich text editor of the site (profile of the back office):
+						   Autumn Note edits in the page, TinyMCE starts asynchronously, any other editor reads the textarea */
 						const ta = document.getElementById('modifyComment');
 						if (ta) { ta.value = formValues.comment_text; }
-						const waitEditor = setInterval(function() {
-							const mcEditor = tinyMCE.get('modifyComment');
-							if (mcEditor) {
-								clearInterval(waitEditor);
-								mcEditor.setContent(formValues.comment_text);
-							}
-						}, 50);
+						const autumnNote = (ta && window.AutumnNote) ? window.AutumnNote.getInstance(ta) : null;
+						if (autumnNote) {
+							autumnNote.setHTML(formValues.comment_text);
+						} else if (window.tinymce) {
+							let editorTries = 0;
+							const waitEditor = setInterval(function() {
+								const mcEditor = window.tinymce.get('modifyComment');
+								if (mcEditor || ++editorTries > 40) {
+									clearInterval(waitEditor);
+									if (mcEditor) { mcEditor.setContent(formValues.comment_text); }
+								}
+							}, 50);
+						}
 
 						/* Set dates/times via Flatpickr API */
 						function fpSet(el, val) {
