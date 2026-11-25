@@ -33,16 +33,150 @@
  */
 package fr.paris.lutece.plugins.appointment.modules.desk.service;
 
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import fr.paris.lutece.plugins.appointment.business.calendar.CalendarTemplate;
+import fr.paris.lutece.plugins.appointment.business.calendar.CalendarTemplateHome;
+import fr.paris.lutece.plugins.appointment.business.slot.Slot;
+import fr.paris.lutece.plugins.appointment.service.FormService;
+import fr.paris.lutece.plugins.appointment.service.SlotService;
+import fr.paris.lutece.plugins.appointment.service.WeekDefinitionService;
+import fr.paris.lutece.plugins.appointment.web.dto.AppointmentFormDTO;
+import fr.paris.lutece.portal.service.image.ImageResource;
 import fr.paris.lutece.test.LuteceTestCase;
 
+/**
+ * Opening and closing desks, as the desk screen sends the slots: the capacity the screen sends is already the new one.
+ */
 public class AppointmentDeskServiceTest extends LuteceTestCase
 {
+    private static final int DESKS = 3;
+    private int _nIdForm;
+    private int _nIdCalendarTemplate;
+    private LocalDate _day;
 
-    @Test
-    public void testAppointmentDeskService( )
+    @BeforeEach
+    @Override
+    protected void setUp( ) throws Exception
     {
-        assertTrue( true );
+        super.setUp( );
+        CalendarTemplate calendarTemplate = new CalendarTemplate( );
+        calendarTemplate.setTitle( "desk test" );
+        calendarTemplate.setDescription( "desk test" );
+        calendarTemplate.setTemplatePath( "desk_test.html" );
+        CalendarTemplateHome.create( calendarTemplate );
+        _nIdCalendarTemplate = calendarTemplate.getIdCalendarTemplate( );
+
+        AppointmentFormDTO form = new AppointmentFormDTO( );
+        form.setTitle( "desk test" );
+        form.setName( "desk test" );
+        form.setDescriptionRule( "desk test" );
+        form.setDescription( "desk test" );
+        form.setTimeStart( "09:00" );
+        form.setTimeEnd( "12:00" );
+        form.setDurationAppointments( 30 );
+        form.setDateStartValidity( Date.valueOf( LocalDate.now( ) ) );
+        form.setDateEndValidity( Date.valueOf( LocalDate.now( ).plusMonths( 1 ) ) );
+        form.setNbWeeksToDisplay( 3 );
+        form.setMaxPeoplePerAppointment( 1 );
+        form.setMaxCapacityPerSlot( DESKS );
+        form.setIsOpenMonday( true );
+        form.setIsOpenTuesday( true );
+        form.setIsOpenWednesday( true );
+        form.setIsOpenThursday( true );
+        form.setIsOpenFriday( true );
+        form.setIsOpenSaturday( true );
+        form.setIsOpenSunday( true );
+        form.setCalendarTemplateId( _nIdCalendarTemplate );
+        form.setIsActive( true );
+        ImageResource icon = new ImageResource( );
+        icon.setImage( new byte [ 0] );
+        icon.setMimeType( "image/png" );
+        form.setIcon( icon );
+        _nIdForm = FormService.createAppointmentForm( form );
+        _day = LocalDate.now( ).plusDays( 3 );
+    }
+
+    @AfterEach
+    @Override
+    protected void tearDown( ) throws Exception
+    {
+        if ( _nIdForm > 0 )
+        {
+            FormService.removeForm( _nIdForm );
+        }
+        CalendarTemplateHome.delete( _nIdCalendarTemplate );
+        super.tearDown( );
+    }
+
+    /**
+     * Closing one desk on a slot of the typical week never stored: the capacity loses one place, not two.
+     */
+    @Test
+    public void testCloseOneDeskOnASlotNeverStored( )
+    {
+        Slot computed = slotAt( 10 );
+        assertEquals( 0, computed.getIdSlot( ) );
+        assertEquals( DESKS, computed.getMaxCapacity( ) );
+
+        AppointmentDeskService.closeAppointmentDesk( List.of( sentByTheScreen( computed, DESKS - 1 ) ) );
+
+        assertEquals( DESKS - 1, slotAt( 10 ).getMaxCapacity( ) );
+    }
+
+    /**
+     * Once every desk of the day is closed, a desk can be opened again: the number of desks of the day is the one of the
+     * typical week, not the highest capacity left.
+     */
+    @Test
+    public void testOpenADeskOnADayWhoseDesksAreAllClosed( )
+    {
+        for ( int i = DESKS; i > 0; i-- )
+        {
+            for ( Slot slot : daySlots( ) )
+            {
+                AppointmentDeskService.closeAppointmentDesk( List.of( sentByTheScreen( slot, slot.getMaxCapacity( ) - 1 ) ) );
+            }
+        }
+        assertTrue( daySlots( ).stream( ).allMatch( s -> s.getMaxCapacity( ) == 0 ) );
+        assertEquals( DESKS, AppointmentDeskService.getNumberOfDesks( _nIdForm, _day ) );
+
+        Slot slot = slotAt( 10 );
+        AppointmentDeskService.openAppointmentDesk( List.of( sentByTheScreen( slot, 1 ) ) );
+
+        assertEquals( 1, slotAt( 10 ).getMaxCapacity( ) );
+    }
+
+    private List<Slot> daySlots( )
+    {
+        return SlotService.buildListSlot( _nIdForm, WeekDefinitionService.findAllWeekDefinition( _nIdForm ), _day, _day );
+    }
+
+    private Slot slotAt( int nHour )
+    {
+        LocalDateTime start = _day.atTime( nHour, 0 );
+        return daySlots( ).stream( ).filter( s -> start.equals( s.getStartingDateTime( ) ) ).findFirst( ).orElseThrow( );
+    }
+
+    /**
+     * The slot as the desk screen sends it: its id (0 when not stored), its times, and the new capacity.
+     */
+    private Slot sentByTheScreen( Slot slot, int nNewCapacity )
+    {
+        Slot sent = new Slot( );
+        sent.setIdSlot( slot.getIdSlot( ) );
+        sent.setIdForm( _nIdForm );
+        sent.setStartingDateTime( slot.getStartingDateTime( ) );
+        sent.setEndingDateTime( slot.getEndingDateTime( ) );
+        sent.setMaxCapacity( nNewCapacity );
+        sent.setIsOpen( nNewCapacity > 0 );
+        return sent;
     }
 }

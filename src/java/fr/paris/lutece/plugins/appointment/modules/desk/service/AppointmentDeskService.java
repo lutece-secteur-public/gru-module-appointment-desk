@@ -36,14 +36,17 @@ package fr.paris.lutece.plugins.appointment.modules.desk.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
 import fr.paris.lutece.plugins.appointment.business.planning.ClosingDay;
+import fr.paris.lutece.plugins.appointment.business.planning.WeekDefinition;
 import fr.paris.lutece.plugins.appointment.business.rule.ReservationRule;
 import fr.paris.lutece.plugins.appointment.business.slot.Slot;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.AppointmentDeskPlugin;
@@ -121,6 +124,48 @@ public class AppointmentDeskService
         {
             changeCapacity( storedSlot( slot, -1 ), -1, Integer.MAX_VALUE );
         }
+    }
+
+    /**
+     * Open one desk on each slot: the capacity of the slot, as stored, gains one place, up to the number of desks of the
+     * day of its form. Nothing is opened on a closing day.
+     *
+     * @param listSlot
+     *            the slots, as the desk screen sends them
+     */
+    public static void openAppointmentDesk( List<Slot> listSlot )
+    {
+        Map<String, Integer> mapDesks = new HashMap<>( );
+        for ( Slot slot : listSlot )
+        {
+            LocalDate day = slot.getStartingDateTime( ).toLocalDate( );
+            int nDesks = mapDesks.computeIfAbsent( slot.getIdForm( ) + "/" + day, k -> getNumberOfDesks( slot.getIdForm( ), day ) );
+            openAppointmentDesk( List.of( slot ), nDesks );
+        }
+    }
+
+    /**
+     * Get the number of desks of a day of a form: the capacity per slot of the typical week applied that day, or the
+     * highest capacity of the slots of the day when desks were added. Closing every desk of the day does not lower it,
+     * so that a desk can be opened again.
+     *
+     * @param nIdForm
+     *            the id of the form
+     * @param day
+     *            the day
+     * @return the number of desks
+     */
+    public static int getNumberOfDesks( int nIdForm, LocalDate day )
+    {
+        int nDesks = SlotService.buildListSlot( nIdForm, WeekDefinitionService.findAllWeekDefinition( nIdForm ), day, day ).stream( )
+                .mapToInt( Slot::getMaxCapacity ).max( ).orElse( 0 );
+        WeekDefinition weekDefinition = WeekDefinitionService.findWeekDefinitionByIdFormAndClosestToDateOfApply( nIdForm, day );
+        ReservationRule rule = ( weekDefinition != null ) ? ReservationRuleService.findReservationRuleById( weekDefinition.getIdReservationRule( ) ) : null;
+        if ( rule != null )
+        {
+            nDesks = Math.max( nDesks, rule.getMaxCapacityPerSlot( ) );
+        }
+        return nDesks;
     }
 
     /**

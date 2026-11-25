@@ -69,13 +69,11 @@ import fr.paris.lutece.util.date.DateUtil;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.time.ZoneId;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.NoSuchElementException;
 
 import jakarta.enterprise.context.SessionScoped;
 import jakarta.inject.Inject;
@@ -166,8 +164,6 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String PROPERTY_MESSAGE_ERROR_REMOVE_DESK_BOOKED = "module.appointment.desk.error.removeDesk.booked";
     private static final ObjectMapper MAPPER = new ObjectMapper( ).registerModule( new JavaTimeModule( ) )
             .configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-    // Session variable to store working values
-    private int _nMaxCapacity;
     private String _strContext;
 
     /**
@@ -233,15 +229,8 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
             dateDay = LocalDate.now( );
             strDayDate = DateUtil.getDateString( Date.from( dateDay.atStartOfDay( ).atZone( ZoneId.systemDefault( ) ).toInstant( ) ), getLocale( ) );
         }
-        int appointmentDesk = 0;
         List<Slot> listSlot = SlotService.buildListSlot( nIdForm, mapWeekDefinition, dateDay, dateDay );
-        if ( !listSlot.isEmpty( ) )
-        {
-
-            Slot slot = listSlot.stream( ).max( Comparator.comparing( Slot::getMaxCapacity ) ).orElseThrow( NoSuchElementException::new );
-            appointmentDesk = slot.getMaxCapacity( );
-
-        }
+        int appointmentDesk = AppointmentDeskService.getNumberOfDesks( nIdForm, dateDay );
         java.sql.Date dateSqlDaey = java.sql.Date.valueOf( dateDay );
         List<CommentDTO> listComment = CommentService.buildCommentDTO( CommentService.findListCommentsInclusive( dateSqlDaey, dateSqlDaey, nIdForm ) );
 
@@ -251,7 +240,6 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         filter.setEndingDateOfSearch( java.sql.Date.valueOf( dateDay ) );
         filter.setStatus( 0 );
         List<Appointment> listAppt = AppointmentService.findListAppointmentsByFilter( filter );
-        _nMaxCapacity = appointmentDesk;
 
         _models.put( MARK_ACTIVATE_EDIT_MODE, activateEditMode );
         _models.put( MARK_CONTEXT, _strContext );
@@ -300,7 +288,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     @Action( value = ACTION_OPEN_APPOINTMENTDESK, securityTokenAction = ACTION_INCREMENT_MAX_CAPACITY )
     public String doOpenAppointmentDesk( HttpServletRequest request )
     {
-        return processSlots( request, listSlots -> AppointmentDeskService.openAppointmentDesk( listSlots, _nMaxCapacity ) );
+        return processSlots( request, listSlots -> AppointmentDeskService.openAppointmentDesk( listSlots ) );
     }
 
     /**
