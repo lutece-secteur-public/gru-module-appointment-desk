@@ -383,7 +383,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
             Slot stored = ( slot.getIdSlot( ) != 0 ) ? SlotService.findSlotById( slot.getIdSlot( ) ) : null;
             int nIdForm = ( stored != null ) ? stored.getIdForm( ) : slot.getIdForm( );
             if ( ( slot.getIdSlot( ) != 0 && stored == null ) || !RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, Integer.toString( nIdForm ),
-                    AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM, (User) getUser( ) ) )
+                    AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM, (User) getUser( ) ) || !isInWorkgroupOfUser( nIdForm ) )
             {
                 addError( PROPERTY_MESSAGE_ERROR_ACCESS_DENIED, getLocale( ) );
                 return redirectToManageAppointmentDesks( request );
@@ -392,6 +392,19 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         }
         operation.accept( listSlots );
         return redirectToManageAppointmentDesks( request );
+    }
+
+    /**
+     * Tells whether a form belongs to a workgroup of the current user: the same check as the day view.
+     *
+     * @param nIdForm
+     *            the id of the form
+     * @return true if the form exists and the user may see it
+     */
+    private boolean isInWorkgroupOfUser( int nIdForm )
+    {
+        Form form = FormService.findFormLightByPrimaryKey( nIdForm );
+        return form != null && AdminWorkgroupService.isAuthorized( form, getUser( ) );
     }
 
     /**
@@ -449,7 +462,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         IncrementSlot incrementSlot = new IncrementSlot( );
         String strIdForm = request.getParameter( PARAMETER_ID_FORM );
         if ( !RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, strIdForm, AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM,
-                (User) getUser( ) ) )
+                (User) getUser( ) ) || !isInWorkgroupOfUser( NumberUtils.toInt( strIdForm, -1 ) ) )
         {
             throw new AccessDeniedException( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM );
         }
