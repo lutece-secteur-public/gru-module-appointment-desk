@@ -119,7 +119,7 @@ public class AppointmentDeskService
     {
         for ( Slot slot : listSlot )
         {
-            changeCapacity( storedSlot( slot ), -1, Integer.MAX_VALUE );
+            changeCapacity( storedSlot( slot, -1 ), -1, Integer.MAX_VALUE );
         }
     }
 
@@ -141,25 +141,29 @@ public class AppointmentDeskService
         }
         for ( Slot slot : listSlot )
         {
-            changeCapacity( storedSlot( slot ), 1, nMaxCapacity );
+            changeCapacity( storedSlot( slot, 1 ), 1, nMaxCapacity );
         }
     }
 
     /**
      * Get the id of the stored slot matching a slot sent by the desk screen, creating it when it only exists in the
-     * typical week.
+     * typical week. The screen sends the capacity already moved by one place: a slot created here gets the capacity it had
+     * before the change, which changeCapacity then applies once.
      * 
      * @param slot
      *            the slot sent by the screen
+     * @param nDelta
+     *            the places the operation adds, negative to remove
      * @return the id of the stored slot
      */
-    private static int storedSlot( Slot slot )
+    private static int storedSlot( Slot slot, int nDelta )
     {
         if ( slot.getIdSlot( ) != 0 )
         {
             return slot.getIdSlot( );
         }
         SlotService.addDateAndTimeToSlot( slot );
+        slot.setMaxCapacity( Math.max( slot.getMaxCapacity( ) - nDelta, 0 ) );
         slot.setNbRemainingPlaces( slot.getMaxCapacity( ) );
         slot.setNbPotentialRemainingPlaces( slot.getMaxCapacity( ) );
         return SlotSafeService.saveSlot( slot ).getIdSlot( );
