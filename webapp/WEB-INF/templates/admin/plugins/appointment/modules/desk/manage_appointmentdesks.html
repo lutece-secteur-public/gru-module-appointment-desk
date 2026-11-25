@@ -9,6 +9,9 @@
 </style>
 <@appointmentTabs tab='day' form=appointmentForm context=context>
 	<@messages errors=errors warnings=warnings infos=infos />
+	<#if !list_slot?has_content>
+		<@alert color='info' iconTitle='info-circle' id='desk-no-slot'>#i18n{module.appointment.desk.manage_appointmentdesks.noSlot}</@alert>
+	</#if>
 	<@div class='d-flex justify-content-end mb-2'>
 		<#if permission_add_comment?boolean>
 			<@button id='toggle-add-comment' color='light' size='sm' class='me-1' buttonIcon='message-plus' title='#i18n{appointment.create_comment.pageTitle}' hideTitle=['xs','sm'] params={"data-bs-toggle": "modal", "data-bs-target": "#commentModal"} />
@@ -395,7 +398,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				window.location.href = navUrl + '?id_form=' + idForm + '&day=' + clickedDay + '&context=' + context;
 			}
 		},
-		<#if activateEditMode>
+		<#if activateEditMode && list_slot?has_content>
 		selectable: true,
 		select: function(info) {
 			if (info.resource) {

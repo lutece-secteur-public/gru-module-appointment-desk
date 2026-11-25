@@ -230,4 +230,39 @@ public class AppointmentDeskTemplatesRenderTest extends LuteceTestCase
         assertTrue( strHtml.contains( "data-bs-target=\"#deskModal\"" ), strHtml );
         assertTrue( strHtml.contains( "data-bs-dismiss=\"modal\"" ), strHtml );
     }
+
+    /**
+     * A day with slots can be selected to open or close desks, and shows no message about missing slots.
+     *
+     * @throws Exception
+     *             if the rendering fails
+     */
+    @Test
+    public void testDayWithSlotsIsSelectable( ) throws Exception
+    {
+        String strHtml = render( TEMPLATE_MANAGE_DESKS, model( ) );
+
+        assertTrue( strHtml.contains( "selectable: true" ), strHtml );
+        assertFalse( strHtml.contains( "manage_appointmentdesks.noSlot" ), strHtml );
+    }
+
+    /**
+     * A day without slot says so and cannot be selected: a selection there would have nothing to open or close.
+     *
+     * @throws Exception
+     *             if the rendering fails
+     */
+    @Test
+    public void testDayWithoutSlotShowsMessageAndIsNotSelectable( ) throws Exception
+    {
+        Map<String, Object> model = model( );
+        model.put( "list_slot", List.of( ) );
+        model.put( "numb_desk", 0 );
+
+        String strHtml = render( TEMPLATE_MANAGE_DESKS, model );
+
+        assertTrue( strHtml.contains( "#i18n{module.appointment.desk.manage_appointmentdesks.noSlot}" ), strHtml );
+        assertTrue( strHtml.contains( "id=\"desk-no-slot\"" ), strHtml );
+        assertFalse( strHtml.contains( "selectable: true" ), strHtml );
+    }
 }
